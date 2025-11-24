@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db-prod-host:5432/hotelbook
+    username: ${HOTELBOOK_DB_USER}
+    password: ${HOTELBOOK_DB_PASS}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO

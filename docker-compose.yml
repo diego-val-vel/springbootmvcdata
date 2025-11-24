@@ -1,0 +1,50 @@
+services:
+  springdev:
+    image: ubuntu:24.04
+    container_name: springboot-dev
+    stdin_open: true
+    tty: true
+    command: [ "bash", "-lc", "tail -f /dev/null" ]
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    ports:
+      - "8080:8080"
+    environment:
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+      - TERM=xterm-256color
+    restart: unless-stopped
+    networks:
+      - devnet
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: springboot-postgres
+    environment:
+      - POSTGRES_USER=appuser
+      - POSTGRES_PASSWORD=apppass
+      - POSTGRES_DB=hotelbook
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - devnet
+
+volumes:
+  pgdata:
+
+networks:
+  devnet:
+    driver: bridge

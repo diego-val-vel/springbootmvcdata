@@ -1,0 +1,49 @@
+# ==================================================
+# Maven / Spring Boot
+# ==================================================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Logs
+*.log
+logs/
+*.tmp
+
+# ==================================================
+# IDEs
+# ==================================================
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# VS Code
+.vscode/
+
+# NetBeans
+nbproject/
+nbbuild/
+dist/
+.nb-gradle/
+
+# ==================================================
+# Sistema operativo
+# ==================================================
+.DS_Store
+Thumbs.db
+
+# ==================================================
+# Node/Frontend
+# ==================================================
+node_modules/
+dist/
+build/
