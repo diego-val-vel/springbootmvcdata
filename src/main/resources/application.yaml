@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: hotelbook
+
+  profiles:
+    active: dev   # dev por defecto
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
