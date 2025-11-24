@@ -42,7 +42,7 @@ dist/
 Thumbs.db
 
 # ==================================================
-# Node/Frontend (por si luego metes algo)
+# Node/Frontend
 # ==================================================
 node_modules/
 dist/
