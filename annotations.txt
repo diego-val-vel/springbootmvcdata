@@ -1,0 +1,94 @@
+===
+Anotaciones Spring Boot / contexto
+===
+
+- @SpringBootApplication
+Marca la clase principal de Spring Boot (configuración, autoconfiguración y escaneo de componentes).
+
+- @SpringBootTest
+Levanta el contexto completo de Spring Boot para pruebas.
+
+===
+Anotaciones web / MVC
+===
+
+- @RestController
+Controlador web cuyos métodos devuelven directamente JSON/objetos en la respuesta HTTP.
+
+- @RequestMapping
+Define la ruta base (o general) para los métodos de un controlador.
+
+- @PostMapping
+Mapea un método a peticiones HTTP POST.
+
+- @GetMapping
+Mapea un método a peticiones HTTP GET.
+
+- @PathVariable
+Vincula una parte de la URL (por ejemplo {id}) con un parámetro del método.
+
+- @RequestBody
+Vincula el cuerpo de la petición HTTP (JSON) con un parámetro del método.
+
+===
+Validación (Bean Validation / Jakarta Validation)
+===
+
+- @Valid
+Dispara Bean Validation sobre el objeto anotado (valida sus constraints).
+
+- @NotBlank
+Cadena obligatoria, no permite null, vacío ni solo espacios.
+
+- @Size
+Restringe la longitud mínima y/o máxima de una cadena o colección.
+
+- @NotNull
+Campo obligatorio, no permite null.
+
+- @Min
+Valor numérico mínimo permitido.
+
+===
+Estereotipos Spring (componentes)
+===
+
+- @Service
+Marca una clase de lógica de negocio (servicio) para el contenedor de Spring.
+
+- @Repository
+Marca una clase de acceso a datos (repositorio) para el contenedor de Spring.
+
+Manejo global de errores
+
+- @ControllerAdvice
+Define una clase con lógica transversal para todos los controladores (por ejemplo, manejo de excepciones).
+
+- @ExceptionHandler
+Indica que un método maneja un tipo específico de excepción.
+
+===
+Lombok
+===
+
+- @Data
+Genera getters, setters, toString, equals y hashCode.
+
+- @Builder
+Genera un builder para construir instancias de la clase.
+
+- @NoArgsConstructor
+Genera un constructor sin argumentos.
+
+- @AllArgsConstructor
+Genera un constructor con todos los campos de la clase.
+
+- @Builder.Default
+Permite definir valores por defecto para campos cuando se usa el builder.
+
+===
+JUnit (pruebas)
+===
+
+- @Test
+Marca un método como prueba unitaria.

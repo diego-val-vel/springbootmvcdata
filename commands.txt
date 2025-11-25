@@ -24,3 +24,56 @@ curl -fsSL https://deb.nodesource.com/setup_20.x -o /tmp/nodesource_setup.sh
 bash /tmp/nodesource_setup.sh
 apt-get install -y nodejs
 node -v
+
+# Compilar proyecto
+mvn -q -DskipTests package
+
+# ===
+# Uso de perfiles
+# ===
+
+# Default
+mvn spring-boot:run
+
+# Test
+mvn spring-boot:run -Dspring-boot.run.profiles=test
+
+# Prod
+mvn spring-boot:run -Dspring-boot.run.profiles=prod
+
+# ===
+# Curls práctica 2
+# ===
+
+# Dentro del contenedor
+cd /workspace
+mvn spring-boot:run
+
+# Probar /actuator/health desde el host
+curl http://localhost:8080/actuator/health
+
+# Probar creación de pre-reserva (caso correcto)
+curl -i \
+  -H "Content-Type: application/json" \
+  -d '{
+    "guestName": "Juan Pérez",
+    "roomType": "STANDARD",
+    "numberOfNights": 3
+  }' \
+  http://localhost:8080/api/pre-bookings
+
+# Probar validación (error de Bean Validation), nombre vacío y noches 0
+curl -i \
+  -H "Content-Type: application/json" \
+  -d '{
+    "guestName": "",
+    "roomType": "STANDARD",
+    "numberOfNights": 0
+  }' \
+  http://localhost:8080/api/pre-bookings
+
+# Probar consulta por id (caso encontrado)
+curl -i http://localhost:8080/api/pre-bookings/1
+
+# Probar consulta por id inexistente (BookingNotFoundException)
+curl -i http://localhost:8080/api/pre-bookings/999
