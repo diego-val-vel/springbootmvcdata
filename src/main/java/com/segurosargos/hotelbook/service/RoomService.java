@@ -49,6 +49,7 @@ public class RoomService {
                 .capacity(requestDto.getCapacity())
                 .basePricePerNight(requestDto.getBasePricePerNight())
                 .active(true)
+                // .internalNotes("Notas internas de uso exclusivo del sistema.")
                 .build();
 
         Room saved = roomRepository.save(room);

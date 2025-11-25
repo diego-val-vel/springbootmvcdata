@@ -1,6 +1,7 @@
 package com.segurosargos.hotelbook.dto;
 
 import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
@@ -34,7 +35,9 @@ public class RoomSummaryResponseDto {
 
     /*
      * Precio base por noche.
+     * Se expone como pricePerNight en el JSON.
      */
+    @JsonProperty("pricePerNight")
     private BigDecimal basePricePerNight;
 
     /*

@@ -1,6 +1,7 @@
 package com.segurosargos.hotelbook.model;
 
 import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -46,4 +47,10 @@ public class Room {
      * Indicador de si la habitación está activa en el catálogo.
      */
     private boolean active;
+
+    /*
+     * Notas internas de la habitación que no deben exponerse en las respuestas JSON.
+     */
+    @JsonIgnore
+    private String internalNotes;
 }
