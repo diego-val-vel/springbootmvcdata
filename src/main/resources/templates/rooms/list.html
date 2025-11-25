@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de habitaciones</title>
+</head>
+<body>
+<h1>Listado de habitaciones</h1>
+
+<p th:if="${#lists.isEmpty(rooms)}">
+    No hay habitaciones registradas.
+</p>
+
+<table th:if="${!#lists.isEmpty(rooms)}" border="1" cellpadding="4" cellspacing="0">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Código</th>
+        <th>Nombre</th>
+        <th>Capacidad</th>
+        <th>Precio por noche</th>
+        <th>Activa</th>
+        <th>Detalle</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="room : ${rooms}">
+        <td th:text="${room.id}">1</td>
+        <td th:text="${room.code}">STD-101</td>
+        <td th:text="${room.name}">Standard King</td>
+        <td th:text="${room.capacity}">2</td>
+        <td th:text="${room.basePricePerNight}">1500.00</td>
+        <td th:text="${room.active}">true</td>
+        <td>
+            <a th:href="@{|/rooms/${room.id}|}">Ver detalle</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
