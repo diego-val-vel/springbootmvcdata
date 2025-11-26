@@ -211,7 +211,7 @@ curl -i http://localhost:8080/rooms/2
 http://localhost:8080/rooms
 
 # Verificar que el campo interno no se expone en JSON
-# Modificar el service para asignar un valor.
+# Modificar el RoomService.createRoom para asignar un valor en las notas internas.
 
 curl -i -X POST http://localhost:8080/api/rooms \
   -H "Content-Type: application/json" \
