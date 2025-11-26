@@ -8,12 +8,21 @@ Marca la clase principal de Spring Boot (configuración, autoconfiguración y es
 - @SpringBootTest
 Levanta el contexto completo de Spring Boot para pruebas.
 
+- @Configuration
+Indica que una clase define beans de configuración para el contenedor de Spring (clases de configuración explícita).
+
+- @Bean
+Marca un método dentro de una clase @Configuration cuyo valor de retorno será registrado como bean en el contexto de Spring.
+
 ===
 Anotaciones web / MVC
 ===
 
+- @Controller
+Controlador web orientado a vistas. El valor de retorno de sus métodos se interpreta, por defecto, como nombre lógico de vista (por ejemplo, plantilla Thymeleaf).
+
 - @RestController
-Controlador web cuyos métodos devuelven directamente JSON/objetos en la respuesta HTTP.
+Controlador web cuyos métodos devuelven directamente JSON/objetos en la respuesta HTTP (@Controller + @ResponseBody).
 
 - @RequestMapping
 Define la ruta base (o general) para los métodos de un controlador.
@@ -23,6 +32,12 @@ Mapea un método a peticiones HTTP POST.
 
 - @GetMapping
 Mapea un método a peticiones HTTP GET.
+
+- @PutMapping
+Mapea un método a peticiones HTTP PUT (actualización de recursos).
+
+- @DeleteMapping
+Mapea un método a peticiones HTTP DELETE (eliminación de recursos).
 
 - @PathVariable
 Vincula una parte de la URL (por ejemplo {id}) con un parámetro del método.
@@ -49,6 +64,12 @@ Campo obligatorio, no permite null.
 - @Min
 Valor numérico mínimo permitido.
 
+- @DecimalMin
+Define un valor decimal mínimo para un número (por ejemplo @DecimalMin("0.0")); permite controlar si el límite es inclusivo o exclusivo.
+
+- @Digits
+Restringe la cantidad de dígitos enteros y decimales permitidos en un número (por ejemplo, hasta 10 enteros y 2 decimales).
+
 ===
 Estereotipos Spring (componentes)
 ===
@@ -59,13 +80,25 @@ Marca una clase de lógica de negocio (servicio) para el contenedor de Spring.
 - @Repository
 Marca una clase de acceso a datos (repositorio) para el contenedor de Spring.
 
+===
 Manejo global de errores
+===
 
 - @ControllerAdvice
 Define una clase con lógica transversal para todos los controladores (por ejemplo, manejo de excepciones).
 
 - @ExceptionHandler
 Indica que un método maneja un tipo específico de excepción.
+
+===
+Serialización JSON (Jackson)
+===
+
+- @JsonIgnore
+Indica que un campo no debe ser serializado ni deserializado en JSON (no aparece en las respuestas ni se lee al recibir JSON).
+
+- @JsonProperty
+Permite personalizar el nombre de una propiedad en JSON (por ejemplo, exponer basePricePerNight como "pricePerNight" en el JSON).
 
 ===
 Lombok
