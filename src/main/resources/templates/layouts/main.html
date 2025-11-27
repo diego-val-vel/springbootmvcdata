@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{app.title}">HotelBook</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+<div th:fragment="layout(content)">
+    <header>
+        <div class="hb-header">
+            <h1 th:text="#{app.title}">HotelBook</h1>
+        </div>
+        <nav class="hb-nav">
+            <ul>
+                <li><a th:href="@{/}" th:text="#{nav.home}">Inicio</a></li>
+                <li><a th:href="@{/rooms}" th:text="#{nav.rooms}">Habitaciones</a></li>
+                <li><a href="#" th:text="#{nav.guests}">Huéspedes</a></li>
+                <li><a href="#" th:text="#{nav.bookings}">Reservas</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="hb-main">
+        <section class="hb-content" th:insert="${content}">
+        </section>
+    </main>
+
+    <footer class="hb-footer">
+        <p th:text="#{footer.copy}">HotelBook - Sistema de reservas</p>
+    </footer>
+</div>
+</body>
+</html>

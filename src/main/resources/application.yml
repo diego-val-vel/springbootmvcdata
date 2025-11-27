@@ -3,7 +3,11 @@ spring:
     name: hotelbook
 
   profiles:
-    active: dev   # dev por defecto
+    active: dev
+
+  messages:
+    basename: messages
+    encoding: UTF-8
 
 server:
   port: 8080

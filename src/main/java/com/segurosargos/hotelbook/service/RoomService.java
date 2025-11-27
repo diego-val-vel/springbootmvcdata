@@ -1,6 +1,7 @@
 package com.segurosargos.hotelbook.service;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import com.segurosargos.hotelbook.dto.RoomCreateRequestDto;
 import com.segurosargos.hotelbook.dto.RoomDetailResponseDto;
+import com.segurosargos.hotelbook.dto.RoomPageResultDto;
 import com.segurosargos.hotelbook.dto.RoomSummaryResponseDto;
 import com.segurosargos.hotelbook.dto.RoomUpdateRequestDto;
 import com.segurosargos.hotelbook.exception.BookingNotFoundException;
@@ -49,7 +51,6 @@ public class RoomService {
                 .capacity(requestDto.getCapacity())
                 .basePricePerNight(requestDto.getBasePricePerNight())
                 .active(true)
-                // .internalNotes("Notas internas de uso exclusivo del sistema.")
                 .build();
 
         Room saved = roomRepository.save(room);
@@ -99,7 +100,7 @@ public class RoomService {
     }
 
     /*
-     * Recupera todas las habitaciones para su uso en listados.
+     * Recupera todas las habitaciones para su uso en listados no paginados.
      */
     public List<RoomSummaryResponseDto> getAllRooms() {
         LOGGER.info("Recuperando todas las habitaciones.");
@@ -111,6 +112,71 @@ public class RoomService {
         return rooms.stream()
                 .map(this::mapToSummaryResponse)
                 .collect(Collectors.toList());
+    }
+
+    /*
+     * Recupera una página de habitaciones ordenadas según los criterios indicados.
+     * Este método simula la paginación que luego realizará Spring Data JPA.
+     */
+    public RoomPageResultDto getRoomsPage(int page, int size, String sort, String direction) {
+        LOGGER.info("Recuperando página de habitaciones. page={}, size={}, sort={}, direction={}.",
+                page, size, sort, direction);
+
+        int normalizedPage = Math.max(page, 0);
+        int normalizedSize = size <= 0 ? 10 : size;
+
+        List<Room> allRooms = roomRepository.findAll();
+
+        Comparator<Room> comparator = buildRoomComparator(sort);
+
+        if (comparator != null) {
+            if ("desc".equalsIgnoreCase(direction)) {
+                comparator = comparator.reversed();
+            }
+            allRooms = allRooms.stream()
+                    .sorted(comparator)
+                    .collect(Collectors.toList());
+        }
+
+        long totalElements = allRooms.size();
+        int totalPages = totalElements == 0 ? 0
+                : (int) ((totalElements + normalizedSize - 1) / normalizedSize);
+
+        if (totalPages > 0 && normalizedPage >= totalPages) {
+            normalizedPage = totalPages - 1;
+        }
+
+        int fromIndex = normalizedPage * normalizedSize;
+        int toIndex = Math.min(fromIndex + normalizedSize, (int) totalElements);
+
+        List<RoomSummaryResponseDto> content;
+
+        if (fromIndex >= toIndex || totalElements == 0) {
+            content = List.of();
+        } else {
+            content = allRooms.subList(fromIndex, toIndex).stream()
+                    .map(this::mapToSummaryResponse)
+                    .collect(Collectors.toList());
+        }
+
+        boolean first = totalPages == 0 || normalizedPage == 0;
+        boolean last = totalPages == 0 || normalizedPage >= totalPages - 1;
+
+        LOGGER.info(
+                "Página de habitaciones construida. page={}, size={}, totalElements={}, totalPages={}.",
+                normalizedPage, normalizedSize, totalElements, totalPages);
+
+        return new RoomPageResultDto(
+                content,
+                normalizedPage,
+                normalizedSize,
+                totalElements,
+                totalPages,
+                first,
+                last,
+                sort,
+                direction
+        );
     }
 
     /*
@@ -126,6 +192,44 @@ public class RoomService {
         roomRepository.deleteById(room.getId());
 
         LOGGER.info("Habitación eliminada con id {}.", id);
+    }
+
+    /*
+     * Construye un comparador para ordenar habitaciones según el campo indicado.
+     */
+    private Comparator<Room> buildRoomComparator(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return Comparator.comparing(Room::getId, Comparator.nullsLast(Long::compareTo));
+        }
+
+        String normalizedSort = sort.trim().toLowerCase();
+
+        switch (normalizedSort) {
+            case "code":
+                return Comparator.comparing(
+                        Room::getCode,
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            case "name":
+                return Comparator.comparing(
+                        Room::getName,
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+            case "capacity":
+                return Comparator.comparing(
+                        Room::getCapacity,
+                        Comparator.nullsLast(Integer::compareTo));
+            case "price":
+            case "basepricepernight":
+                return Comparator.comparing(
+                        Room::getBasePricePerNight,
+                        Comparator.nullsLast(BigDecimal::compareTo));
+            case "active":
+                return Comparator.comparing(Room::isActive);
+            case "id":
+            default:
+                return Comparator.comparing(
+                        Room::getId,
+                        Comparator.nullsLast(Long::compareTo));
+        }
     }
 
     /*
