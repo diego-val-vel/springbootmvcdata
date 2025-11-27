@@ -19,13 +19,13 @@ Anotaciones web / MVC
 ===
 
 - @Controller
-Controlador web orientado a vistas. El valor de retorno de sus métodos se interpreta, por defecto, como nombre lógico de vista (por ejemplo, plantilla Thymeleaf).
+Controlador web orientado a vistas. El valor de retorno de sus métodos se interpreta como nombre lógico de vista.
 
 - @RestController
-Controlador web cuyos métodos devuelven directamente JSON/objetos en la respuesta HTTP (@Controller + @ResponseBody).
+Controlador web cuyos métodos devuelven JSON.
 
 - @RequestMapping
-Define la ruta base (o general) para los métodos de un controlador.
+Define la ruta base para los métodos de un controlador.
 
 - @PostMapping
 Mapea un método a peticiones HTTP POST.
@@ -34,71 +34,77 @@ Mapea un método a peticiones HTTP POST.
 Mapea un método a peticiones HTTP GET.
 
 - @PutMapping
-Mapea un método a peticiones HTTP PUT (actualización de recursos).
+Mapea un método a peticiones HTTP PUT.
 
 - @DeleteMapping
-Mapea un método a peticiones HTTP DELETE (eliminación de recursos).
+Mapea un método a peticiones HTTP DELETE.
 
 - @PathVariable
-Vincula una parte de la URL (por ejemplo {id}) con un parámetro del método.
+Vincula un fragmento de la URL con un parámetro del método.
 
 - @RequestBody
-Vincula el cuerpo de la petición HTTP (JSON) con un parámetro del método.
+Vincula el cuerpo JSON de la petición con un parámetro.
+
+- @RequestParam
+Vincula parámetros de query (?page, ?size, ?sort, ?dir) con argumentos del método.
+
+- @ModelAttribute
+Vincula los campos de un formulario HTML con un DTO del lado del servidor.
 
 ===
 Validación (Bean Validation / Jakarta Validation)
 ===
 
 - @Valid
-Dispara Bean Validation sobre el objeto anotado (valida sus constraints).
+Dispara Bean Validation sobre el objeto anotado.
 
 - @NotBlank
-Cadena obligatoria, no permite null, vacío ni solo espacios.
+Cadena obligatoria, no permite null, vacío ni espacios.
 
 - @Size
-Restringe la longitud mínima y/o máxima de una cadena o colección.
+Restringe la longitud mínima y/o máxima.
 
 - @NotNull
-Campo obligatorio, no permite null.
+Campo obligatorio.
 
 - @Min
-Valor numérico mínimo permitido.
+Define un valor numérico mínimo.
 
 - @DecimalMin
-Define un valor decimal mínimo para un número (por ejemplo @DecimalMin("0.0")); permite controlar si el límite es inclusivo o exclusivo.
+Define un valor decimal mínimo para un número.
 
 - @Digits
-Restringe la cantidad de dígitos enteros y decimales permitidos en un número (por ejemplo, hasta 10 enteros y 2 decimales).
+Restringe la cantidad de dígitos enteros y decimales permitidos.
 
 ===
 Estereotipos Spring (componentes)
 ===
 
 - @Service
-Marca una clase de lógica de negocio (servicio) para el contenedor de Spring.
+Marca una clase de lógica de negocio.
 
 - @Repository
-Marca una clase de acceso a datos (repositorio) para el contenedor de Spring.
+Marca una clase de acceso a datos.
 
 ===
 Manejo global de errores
 ===
 
 - @ControllerAdvice
-Define una clase con lógica transversal para todos los controladores (por ejemplo, manejo de excepciones).
+Clase con lógica transversal para manejar excepciones.
 
 - @ExceptionHandler
-Indica que un método maneja un tipo específico de excepción.
+Indica que un método maneja un tipo de excepción.
 
 ===
 Serialización JSON (Jackson)
 ===
 
 - @JsonIgnore
-Indica que un campo no debe ser serializado ni deserializado en JSON (no aparece en las respuestas ni se lee al recibir JSON).
+Excluye un campo al serializar/deserializar JSON.
 
 - @JsonProperty
-Permite personalizar el nombre de una propiedad en JSON (por ejemplo, exponer basePricePerNight como "pricePerNight" en el JSON).
+Personaliza el nombre de una propiedad en JSON.
 
 ===
 Lombok
@@ -108,16 +114,16 @@ Lombok
 Genera getters, setters, toString, equals y hashCode.
 
 - @Builder
-Genera un builder para construir instancias de la clase.
+Genera un builder para construir instancias.
 
 - @NoArgsConstructor
 Genera un constructor sin argumentos.
 
 - @AllArgsConstructor
-Genera un constructor con todos los campos de la clase.
+Genera un constructor con todos los campos.
 
 - @Builder.Default
-Permite definir valores por defecto para campos cuando se usa el builder.
+Define valores por defecto en campos dentro de un builder.
 
 ===
 JUnit (pruebas)

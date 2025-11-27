@@ -1,27 +1,31 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout(~{::body})}">
 <head>
     <meta charset="UTF-8">
-    <title>Detalle de habitación</title>
+    <title th:text="#{rooms.detail.title}">Detalle de habitación</title>
 </head>
 <body>
-<h1>Detalle de habitación</h1>
+<section>
+    <h1 th:text="#{rooms.detail.title}">Detalle de habitación</h1>
 
-<div th:if="${room == null}">
-    <p>No se encontró la habitación solicitada.</p>
-</div>
+    <div th:if="${room == null}">
+        <p>No se encontró la habitación solicitada.</p>
+    </div>
 
-<div th:if="${room != null}">
-    <p><strong>Id:</strong> <span th:text="${room.id}">1</span></p>
-    <p><strong>Código:</strong> <span th:text="${room.code}">STD-101</span></p>
-    <p><strong>Nombre:</strong> <span th:text="${room.name}">Standard King</span></p>
-    <p><strong>Capacidad:</strong> <span th:text="${room.capacity}">2</span></p>
-    <p><strong>Precio por noche:</strong> <span th:text="${room.basePricePerNight}">1500.00</span></p>
-    <p><strong>Activa:</strong> <span th:text="${room.active}">true</span></p>
-</div>
+    <div th:if="${room != null}">
+        <p><strong>Id:</strong> <span th:text="${room.id}">1</span></p>
+        <p><strong>Código:</strong> <span th:text="${room.code}">STD-101</span></p>
+        <p><strong>Nombre:</strong> <span th:text="${room.name}">Standard King</span></p>
+        <p><strong>Capacidad:</strong> <span th:text="${room.capacity}">2</span></p>
+        <p><strong>Precio por noche:</strong> <span th:text="${room.basePricePerNight}">1500.00</span></p>
+        <p><strong>Activa:</strong> <span th:text="${room.active}">true</span></p>
+    </div>
 
-<p>
-    <a href="/rooms">Volver al listado</a>
-</p>
+    <p>
+        <a th:href="@{/rooms}">Volver al listado</a>
+    </p>
+</section>
 </body>
 </html>

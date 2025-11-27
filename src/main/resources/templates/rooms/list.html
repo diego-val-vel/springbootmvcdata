@@ -1,41 +1,102 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout(~{::body})}">
 <head>
     <meta charset="UTF-8">
-    <title>Listado de habitaciones</title>
+    <title th:text="#{rooms.list.title}">Listado de habitaciones</title>
 </head>
 <body>
-<h1>Listado de habitaciones</h1>
+<section>
+    <h1 th:text="#{rooms.list.title}">Listado de habitaciones</h1>
 
-<p th:if="${#lists.isEmpty(rooms)}">
-    No hay habitaciones registradas.
-</p>
+    <p th:if="${#lists.isEmpty(rooms)}">
+        No hay habitaciones registradas.
+    </p>
 
-<table th:if="${!#lists.isEmpty(rooms)}" border="1" cellpadding="4" cellspacing="0">
-    <thead>
-    <tr>
-        <th>Id</th>
-        <th>Código</th>
-        <th>Nombre</th>
-        <th>Capacidad</th>
-        <th>Precio por noche</th>
-        <th>Activa</th>
-        <th>Detalle</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="room : ${rooms}">
-        <td th:text="${room.id}">1</td>
-        <td th:text="${room.code}">STD-101</td>
-        <td th:text="${room.name}">Standard King</td>
-        <td th:text="${room.capacity}">2</td>
-        <td th:text="${room.basePricePerNight}">1500.00</td>
-        <td th:text="${room.active}">true</td>
-        <td>
-            <a th:href="@{|/rooms/${room.id}|}">Ver detalle</a>
-        </td>
-    </tr>
-    </tbody>
-</table>
+    <div th:if="${!#lists.isEmpty(rooms)}">
+        <table border="1" cellpadding="4" cellspacing="0">
+            <thead>
+            <tr>
+                <th>
+                    <a th:href="@{|/rooms?page=0&size=${pageSize}&sort=id&dir=${sort == 'id' and direction == 'asc' ? 'desc' : 'asc'}|}"
+                       th:text="#{rooms.table.header.id}">
+                        Id
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{|/rooms?page=0&size=${pageSize}&sort=code&dir=${sort == 'code' and direction == 'asc' ? 'desc' : 'asc'}|}"
+                       th:text="#{rooms.table.header.code}">
+                        Código
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{|/rooms?page=0&size=${pageSize}&sort=name&dir=${sort == 'name' and direction == 'asc' ? 'desc' : 'asc'}|}"
+                       th:text="#{rooms.table.header.name}">
+                        Nombre
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{|/rooms?page=0&size=${pageSize}&sort=capacity&dir=${sort == 'capacity' and direction == 'asc' ? 'desc' : 'asc'}|}"
+                       th:text="#{rooms.table.header.capacity}">
+                        Capacidad
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{|/rooms?page=0&size=${pageSize}&sort=price&dir=${sort == 'price' and direction == 'asc' ? 'desc' : 'asc'}|}"
+                       th:text="#{rooms.table.header.price}">
+                        Precio por noche
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{|/rooms?page=0&size=${pageSize}&sort=active&dir=${sort == 'active' and direction == 'asc' ? 'desc' : 'asc'}|}"
+                       th:text="#{rooms.table.header.active}">
+                        Activa
+                    </a>
+                </th>
+                <th th:text="#{rooms.actions.view}">Detalle</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="room : ${rooms}">
+                <td th:text="${room.id}">1</td>
+                <td th:text="${room.code}">STD-101</td>
+                <td th:text="${room.name}">Standard King</td>
+                <td th:text="${room.capacity}">2</td>
+                <td th:text="${room.basePricePerNight}">1500.00</td>
+                <td th:text="${room.active}">true</td>
+                <td>
+                    <a th:href="@{|/rooms/${room.id}|}"
+                       th:text="#{rooms.actions.view}">
+                        Ver detalle
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top: 8px;">
+            <span th:text="#{pagination.info(${currentPage + 1}, ${totalPages}, ${totalElements})}">
+                Página 1 de 1 (0 elementos)
+            </span>
+        </div>
+
+        <div style="margin-top: 4px;">
+            <span th:if="${not roomPage.first}">
+                <a th:href="@{|/rooms?page=${currentPage - 1}&size=${pageSize}&sort=${sort}&dir=${direction}|}"
+                   th:text="#{pagination.previous}">
+                    Anterior
+                </a>
+            </span>
+            <span th:if="${not roomPage.first and not roomPage.last}"> | </span>
+            <span th:if="${not roomPage.last}">
+                <a th:href="@{|/rooms?page=${currentPage + 1}&size=${pageSize}&sort=${sort}&dir=${direction}|}"
+                   th:text="#{pagination.next}">
+                    Siguiente
+                </a>
+            </span>
+        </div>
+    </div>
+</section>
 </body>
 </html>
