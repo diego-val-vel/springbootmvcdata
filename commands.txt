@@ -309,9 +309,8 @@ SELECT * FROM bookings;
 
 -- Endpoints que involucran a la BD
 http://localhost:8080/rooms
-GET http://localhost:8080/api/rooms
-GET http://localhost:8080/api/rooms/1
-POST http://localhost:8080/api/rooms
+http://localhost:8080/api/rooms
+http://localhost:8080/api/rooms/1
 
 -- Endpoints de búsqueda sobre rooms
 curl "http://localhost:8080/api/rooms/search?page=0&size=5"
@@ -332,11 +331,15 @@ curl -X POST "http://localhost:8080/api/rooms" \
 -- Confirmación
 SELECT * FROM rooms WHERE code = 'STD-999';
 
+-- Corroborar sequence
+SELECT last_value FROM rooms_id_seq;
+SELECT MAX(id) FROM rooms;
+
 -- Consultar el detalle, (usar el id anterior)
-curl "http://localhost:8080/api/rooms/7"
+curl "http://localhost:8080/api/rooms/5"
 
 -- Endpoint para hacer actualización, (usar el id anterior)
-curl -X PUT "http://localhost:8080/api/rooms/7" \
+curl -X PUT "http://localhost:8080/api/rooms/3" \
   -H "Content-Type: application/json" \
   -d '{
         "name": "Standard Demo 999 (Renovada)",
