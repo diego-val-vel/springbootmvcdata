@@ -1,11 +1,12 @@
 package com.segurosargos.hotelbook.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import com.segurosargos.hotelbook.model.Room;
 
 /*
- * Contrato para la gestión de habitaciones en memoria.
+ * Contrato para la gestión de habitaciones.
  * La interfaz permite cambiar la implementación a PostgreSQL u otra tecnología
  * sin impactar las capas superiores.
  */
@@ -31,4 +32,14 @@ public interface RoomRepository {
      * Elimina una habitación por su id.
      */
     void deleteById(Long id);
+
+    /*
+     * Busca habitaciones cuyo nombre contenga el texto indicado, ignorando mayúsculas/minúsculas.
+     */
+    List<Room> findByNameContainingIgnoreCase(String name);
+
+    /*
+     * Busca habitaciones cuyo precio base por noche esté dentro del rango indicado.
+     */
+    List<Room> findByBasePricePerNightBetween(BigDecimal minPrice, BigDecimal maxPrice);
 }

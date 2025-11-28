@@ -138,45 +138,69 @@ public class RoomService {
                     .collect(Collectors.toList());
         }
 
-        long totalElements = allRooms.size();
-        int totalPages = totalElements == 0 ? 0
-                : (int) ((totalElements + normalizedSize - 1) / normalizedSize);
+        return buildPageResult(allRooms, normalizedPage, normalizedSize, sort, direction);
+    }
 
-        if (totalPages > 0 && normalizedPage >= totalPages) {
-            normalizedPage = totalPages - 1;
+    /*
+     * Recupera una página de habitaciones aplicando filtros opcionales por nombre y rango de precio.
+     * Si no se especifica ningún filtro, delega en getRoomsPage.
+     */
+    public RoomPageResultDto searchRooms(String nameFilter,
+                                         BigDecimal minPrice,
+                                         BigDecimal maxPrice,
+                                         int page,
+                                         int size,
+                                         String sort,
+                                         String direction) {
+
+        LOGGER.info(
+                "Buscando habitaciones con filtros. nameFilter={}, minPrice={}, maxPrice={}, page={}, size={}, sort={}, direction={}.",
+                nameFilter, minPrice, maxPrice, page, size, sort, direction);
+
+        boolean hasName = nameFilter != null && !nameFilter.trim().isEmpty();
+        boolean hasPriceRange = minPrice != null || maxPrice != null;
+
+        if (!hasName && !hasPriceRange) {
+            LOGGER.info("Sin filtros, delegando en getRoomsPage.");
+            return getRoomsPage(page, size, sort, direction);
         }
 
-        int fromIndex = normalizedPage * normalizedSize;
-        int toIndex = Math.min(fromIndex + normalizedSize, (int) totalElements);
+        int normalizedPage = Math.max(page, 0);
+        int normalizedSize = size <= 0 ? 10 : size;
 
-        List<RoomSummaryResponseDto> content;
+        List<Room> filteredRooms;
 
-        if (fromIndex >= toIndex || totalElements == 0) {
-            content = List.of();
+        if (hasName && !hasPriceRange) {
+            String normalizedName = nameFilter.trim();
+            filteredRooms = roomRepository.findByNameContainingIgnoreCase(normalizedName);
+        } else if (!hasName && hasPriceRange) {
+            BigDecimal effectiveMin = minPrice == null ? BigDecimal.ZERO : minPrice;
+            BigDecimal effectiveMax = maxPrice == null ? MAX_BASE_PRICE_PER_NIGHT : maxPrice;
+            filteredRooms = roomRepository.findByBasePricePerNightBetween(effectiveMin, effectiveMax);
         } else {
-            content = allRooms.subList(fromIndex, toIndex).stream()
-                    .map(this::mapToSummaryResponse)
+            String normalizedName = nameFilter.trim();
+            BigDecimal effectiveMin = minPrice == null ? BigDecimal.ZERO : minPrice;
+            BigDecimal effectiveMax = maxPrice == null ? MAX_BASE_PRICE_PER_NIGHT : maxPrice;
+            List<Room> roomsByName = roomRepository.findByNameContainingIgnoreCase(normalizedName);
+            filteredRooms = roomsByName.stream()
+                    .filter(room -> room.getBasePricePerNight() != null)
+                    .filter(room -> room.getBasePricePerNight().compareTo(effectiveMin) >= 0)
+                    .filter(room -> room.getBasePricePerNight().compareTo(effectiveMax) <= 0)
                     .collect(Collectors.toList());
         }
 
-        boolean first = totalPages == 0 || normalizedPage == 0;
-        boolean last = totalPages == 0 || normalizedPage >= totalPages - 1;
+        Comparator<Room> comparator = buildRoomComparator(sort);
 
-        LOGGER.info(
-                "Página de habitaciones construida. page={}, size={}, totalElements={}, totalPages={}.",
-                normalizedPage, normalizedSize, totalElements, totalPages);
+        if (comparator != null) {
+            if ("desc".equalsIgnoreCase(direction)) {
+                comparator = comparator.reversed();
+            }
+            filteredRooms = filteredRooms.stream()
+                    .sorted(comparator)
+                    .collect(Collectors.toList());
+        }
 
-        return new RoomPageResultDto(
-                content,
-                normalizedPage,
-                normalizedSize,
-                totalElements,
-                totalPages,
-                first,
-                last,
-                sort,
-                direction
-        );
+        return buildPageResult(filteredRooms, normalizedPage, normalizedSize, sort, direction);
     }
 
     /*
@@ -230,6 +254,57 @@ public class RoomService {
                         Room::getId,
                         Comparator.nullsLast(Long::compareTo));
         }
+    }
+
+    /*
+     * Construye un resultado de página a partir de una lista ya filtrada y ordenada.
+     */
+    private RoomPageResultDto buildPageResult(List<Room> rooms,
+                                              int page,
+                                              int size,
+                                              String sort,
+                                              String direction) {
+
+        long totalElements = rooms.size();
+        int totalPages = totalElements == 0 ? 0
+                : (int) ((totalElements + size - 1) / size);
+
+        int normalizedPage = page;
+        if (totalPages > 0 && normalizedPage >= totalPages) {
+            normalizedPage = totalPages - 1;
+        }
+
+        int fromIndex = normalizedPage * size;
+        int toIndex = Math.min(fromIndex + size, (int) totalElements);
+
+        List<RoomSummaryResponseDto> content;
+
+        if (fromIndex >= toIndex || totalElements == 0) {
+            content = List.of();
+        } else {
+            content = rooms.subList(fromIndex, toIndex).stream()
+                    .map(this::mapToSummaryResponse)
+                    .collect(Collectors.toList());
+        }
+
+        boolean first = totalPages == 0 || normalizedPage == 0;
+        boolean last = totalPages == 0 || normalizedPage >= totalPages - 1;
+
+        LOGGER.info(
+                "Página de habitaciones construida. page={}, size={}, totalElements={}, totalPages={}.",
+                normalizedPage, size, totalElements, totalPages);
+
+        return new RoomPageResultDto(
+                content,
+                normalizedPage,
+                size,
+                totalElements,
+                totalPages,
+                first,
+                last,
+                sort,
+                direction
+        );
     }
 
     /*
@@ -287,9 +362,6 @@ public class RoomService {
         }
     }
 
-    /*
-     * Conversión de entidad Room a DTO de resumen.
-     */
     private RoomSummaryResponseDto mapToSummaryResponse(Room room) {
         return RoomSummaryResponseDto.builder()
                 .id(room.getId())
@@ -301,9 +373,6 @@ public class RoomService {
                 .build();
     }
 
-    /*
-     * Conversión de entidad Room a DTO de detalle.
-     */
     private RoomDetailResponseDto mapToDetailResponse(Room room) {
         return RoomDetailResponseDto.builder()
                 .id(room.getId())
