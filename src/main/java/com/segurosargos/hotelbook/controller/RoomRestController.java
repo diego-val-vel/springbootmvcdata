@@ -1,5 +1,6 @@
 package com.segurosargos.hotelbook.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -13,16 +14,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.segurosargos.hotelbook.dto.RoomCreateRequestDto;
 import com.segurosargos.hotelbook.dto.RoomDetailResponseDto;
+import com.segurosargos.hotelbook.dto.RoomPageResultDto;
 import com.segurosargos.hotelbook.dto.RoomSummaryResponseDto;
 import com.segurosargos.hotelbook.dto.RoomUpdateRequestDto;
 import com.segurosargos.hotelbook.service.RoomService;
 
 /*
  * Controlador REST para la gestión de habitaciones.
- * Expone operaciones CRUD sobre el recurso Room.
+ * Expone operaciones CRUD y búsqueda sobre el recurso Room.
  */
 @RestController
 @RequestMapping("/api/rooms")
@@ -45,6 +48,40 @@ public class RoomRestController {
         List<RoomSummaryResponseDto> rooms = roomService.getAllRooms();
         LOGGER.info("Solicitud para obtener todas las habitaciones completada. Total: {}.", rooms.size());
         return ResponseEntity.ok(rooms);
+    }
+
+    /*
+     * Recupera una página de habitaciones aplicando filtros opcionales por nombre y rango de precio.
+     * Si no se especifica ningún filtro, utiliza el listado paginado estándar.
+     */
+    @GetMapping("/search")
+    public ResponseEntity<RoomPageResultDto> searchRooms(
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "minPrice", required = false) BigDecimal minPrice,
+            @RequestParam(name = "maxPrice", required = false) BigDecimal maxPrice,
+            @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+            @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
+            @RequestParam(name = "sort", required = false, defaultValue = "id") String sort,
+            @RequestParam(name = "direction", required = false, defaultValue = "asc") String direction) {
+
+        LOGGER.info(
+                "Recibida solicitud de búsqueda de habitaciones. name={}, minPrice={}, maxPrice={}, page={}, size={}, sort={}, direction={}.",
+                name, minPrice, maxPrice, page, size, sort, direction);
+
+        RoomPageResultDto pageResult = roomService.searchRooms(
+                name,
+                minPrice,
+                maxPrice,
+                page,
+                size,
+                sort,
+                direction
+        );
+
+        LOGGER.info("Solicitud de búsqueda de habitaciones completada. totalElements={}.",
+                pageResult.getTotalElements());
+
+        return ResponseEntity.ok(pageResult);
     }
 
     /*

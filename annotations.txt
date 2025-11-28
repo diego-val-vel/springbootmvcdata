@@ -14,6 +14,11 @@ Indica que una clase define beans de configuración para el contenedor de Spring
 - @Bean
 Marca un método dentro de una clase @Configuration cuyo valor de retorno será registrado como bean en el contexto de Spring.
 
+- @Profile
+Restringe la creación de un bean a uno o varios perfiles de Spring.
+Solo se registra el bean anotado cuando el perfil activo (spring.profiles.active) coincide con el perfil indicado en @Profile.
+Permite tener diferentes implementaciones de una misma interfaz para distintos ambientes (dev, prod, test, inmemory, etc.).
+
 ===
 Anotaciones web / MVC
 ===
@@ -46,7 +51,8 @@ Vincula un fragmento de la URL con un parámetro del método.
 Vincula el cuerpo JSON de la petición con un parámetro.
 
 - @RequestParam
-Vincula parámetros de query (?page, ?size, ?sort, ?dir) con argumentos del método.
+Vincula parámetros de query (?page, ?size, ?sort, ?dir, etc.) con argumentos del método.
+Permite definir valores por defecto y marcar parámetros como opcionales u obligatorios.
 
 - @ModelAttribute
 Vincula los campos de un formulario HTML con un DTO del lado del servidor.
@@ -131,3 +137,42 @@ JUnit (pruebas)
 
 - @Test
 Marca un método como prueba unitaria.
+
+===
+Persistencia / JPA (Jakarta Persistence)
+===
+
+- @Entity
+Marca una clase como entidad JPA.
+Indica que sus instancias se mapearán a registros de una tabla en la base de datos.
+
+- @Table
+Configura el nombre de la tabla y otros detalles de mapeo a nivel de tabla.
+Ejemplo: @Table(name = "rooms") para mapear la entidad a la tabla "rooms".
+
+- @Id
+Identifica el campo que corresponde a la llave primaria de la entidad.
+
+- @GeneratedValue
+Configura la estrategia de generación del valor de la llave primaria.
+Ejemplo común: strategy = GenerationType.IDENTITY para usar autoincremento de la base de datos.
+
+- @Column
+Personaliza el mapeo de un campo a una columna.
+Permite definir nombre de columna, longitud, si acepta null, si es unique, etc.
+
+- @ManyToOne
+Define una relación Muchos-a-Uno entre entidades.
+Se usa, por ejemplo, en BookingEntity para referenciar a RoomEntity o GuestEntity cuando muchas reservaciones corresponden a una misma habitación o huésped.
+
+- @OneToMany
+Define una relación Uno-a-Muchos entre entidades.
+Se usa, por ejemplo, en RoomEntity para representar la lista de BookingEntity asociadas a una habitación.
+
+- @JoinColumn
+Especifica la columna que actúa como llave foránea en una relación.
+Ejemplo: @JoinColumn(name = "room_id") indica que la columna room_id enlaza con la entidad RoomEntity.
+
+- @Enumerated
+Indica cómo se debe persistir un enum en la base de datos.
+Usualmente se usa con EnumType.STRING para guardar el nombre del enum (CONFIRMED, CREATED, CANCELLED, etc.) en vez de su ordinal numérico.
