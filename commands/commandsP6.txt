@@ -1,0 +1,114 @@
+# ===
+# Práctica 6
+# ===
+
+# Cambiarse a la rama
+cd /springbootmvcdata
+git checkout feature/practica6
+
+# Dentro del contenedor
+cd /workspace
+./mvnw -DskipTests clean spring-boot:run
+
+###
+# Bloque 1
+###
+
+-- Parte 1
+
+# Endpoint del reporte sin fecha (usa la fecha actual)
+curl -X GET "http://localhost:8080/api/rooms/occupancy"
+
+# Endpoint del reporte con una fecha específica (sin ocupación)
+curl -G "http://localhost:8080/api/rooms/occupancy" \
+  --data-urlencode "date=2024-12-01"
+
+# Endpoint del reporte con una fecha específica (con ocupación)
+curl -G "http://localhost:8080/api/rooms/occupancy" \
+  --data-urlencode "date=2025-01-10"
+
+-- Parte 2
+
+# Endpoint del reporte con rango de fechas para todas las reservas CONFIRMED (default)
+curl -G "http://localhost:8080/api/bookings/report" \
+  --data-urlencode "startDate=2025-01-01" \
+  --data-urlencode "endDate=2025-12-31"
+
+# Endpoint del reporte filtrando explícitamente por CONFIRMED
+curl -G "http://localhost:8080/api/bookings/report" \
+  --data-urlencode "startDate=2025-01-01" \
+  --data-urlencode "endDate=2025-12-31" \
+  --data-urlencode "status=CONFIRMED"
+
+# Endpoint del reporte probando otro estatus, por ejemplo CREATED
+curl -G "http://localhost:8080/api/bookings/report" \
+  --data-urlencode "startDate=2025-01-01" \
+  --data-urlencode "endDate=2025-12-31" \
+  --data-urlencode "status=CREATED"
+
+-- Parte 3
+
+# Endpoint del reporte monthly stats usando un rango de fechas amplio para todo 2025, usando estatus por defecto (CONFIRMED)
+curl -G "http://localhost:8080/api/bookings/monthly-stats" \
+  --data-urlencode "startDate=2025-01-01" \
+  --data-urlencode "endDate=2025-12-31"
+
+# Endpoint del reporte monthly stats usando un rango de fechas amplio para todo 2025, usando explícitamente el estatus
+curl -G "http://localhost:8080/api/bookings/monthly-stats" \
+  --data-urlencode "startDate=2025-01-01" \
+  --data-urlencode "endDate=2025-12-31" \
+  --data-urlencode "status=CONFIRMED"
+
+curl -G "http://localhost:8080/api/bookings/monthly-stats" \
+  --data-urlencode "startDate=2025-01-01" \
+  --data-urlencode "endDate=2025-12-31" \
+  --data-urlencode "status=CREATED"
+
+###
+# Bloque 2
+###
+
+# Endpoint usando un filtro sencillo por nombre + solo activas
+curl --location --request POST "http://localhost:8080/api/rooms/search-advanced?page=0&size=10&sort=name&direction=asc" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "nameContains": "suite",
+    "onlyActive": true
+  }'
+
+# Endpoint para ver la capacidad mínima + rango de precio
+curl --location --request POST "http://localhost:8080/api/rooms/search-advanced?page=0&size=10&sort=price&direction=asc" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "minCapacity": 2,
+    "minBasePricePerNight": 800,
+    "maxBasePricePerNight": 2500,
+    "onlyActive": true
+  }'
+
+# Endpoint para ver la disponibilidad en rango de fechas (sin solaparse con reservas CONFIRMED)
+curl --location --request POST "http://localhost:8080/api/rooms/search-advanced?page=0&size=10&sort=code&direction=asc" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "availableFrom": "2025-02-14",
+    "availableTo": "2025-02-16",
+    "onlyActive": true
+  }'
+
+# Endpoint que usa un filtro combinado (nombre + capacidad + precio + disponibilidad)
+curl --location --request POST "http://localhost:8080/api/rooms/search-advanced?page=0&size=10&sort=price&direction=asc" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "nameContains": "deluxe",
+    "minCapacity": 2,
+    "minBasePricePerNight": 900,
+    "maxBasePricePerNight": 3000,
+    "onlyActive": true,
+    "availableFrom": "2025-01-10",
+    "availableTo": "2025-01-12"
+  }'
+
+# Si se manda el body vacío
+curl --location --request POST "http://localhost:8080/api/rooms/search-advanced?page=0&size=10" \
+  --header "Content-Type: application/json" \
+  --data '{}'
