@@ -1,6 +1,7 @@
 package com.segurosargos.hotelbook.controller;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -18,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.segurosargos.hotelbook.dto.RoomCreateRequestDto;
 import com.segurosargos.hotelbook.dto.RoomDetailResponseDto;
+import com.segurosargos.hotelbook.dto.RoomOccupancySummaryDto;
 import com.segurosargos.hotelbook.dto.RoomPageResultDto;
+import com.segurosargos.hotelbook.dto.RoomSearchFilterDto;
 import com.segurosargos.hotelbook.dto.RoomSummaryResponseDto;
 import com.segurosargos.hotelbook.dto.RoomUpdateRequestDto;
 import com.segurosargos.hotelbook.service.RoomService;
@@ -82,6 +85,55 @@ public class RoomRestController {
                 pageResult.getTotalElements());
 
         return ResponseEntity.ok(pageResult);
+    }
+
+    /*
+     * Recupera una página de habitaciones aplicando un conjunto avanzado de filtros
+     * basado en Specifications. El filtro se recibe en el cuerpo de la petición
+     * y los parámetros de paginación y orden se reciben como query parameters.
+     */
+    @PostMapping("/search-advanced")
+    public ResponseEntity<RoomPageResultDto> searchRoomsAdvanced(
+            @RequestBody(required = false) RoomSearchFilterDto filter,
+            @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+            @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
+            @RequestParam(name = "sort", required = false, defaultValue = "id") String sort,
+            @RequestParam(name = "direction", required = false, defaultValue = "asc") String direction) {
+
+        LOGGER.info(
+                "Recibida solicitud de búsqueda avanzada de habitaciones. filter={}, page={}, size={}, sort={}, direction={}.",
+                filter, page, size, sort, direction);
+
+        RoomPageResultDto pageResult = roomService.searchRoomsAdvanced(
+                filter,
+                page,
+                size,
+                sort,
+                direction
+        );
+
+        LOGGER.info("Solicitud de búsqueda avanzada completada. totalElements={}.",
+                pageResult.getTotalElements());
+
+        return ResponseEntity.ok(pageResult);
+    }
+
+    /*
+     * Recupera el resumen de ocupación de las habitaciones para una fecha de referencia.
+     * Si no se indica la fecha, se utiliza la fecha actual.
+     */
+    @GetMapping("/occupancy")
+    public ResponseEntity<List<RoomOccupancySummaryDto>> getRoomOccupancySummary(
+            @RequestParam(name = "date", required = false) LocalDate referenceDate) {
+
+        LOGGER.info("Recibida solicitud para obtener el resumen de ocupación de habitaciones para la fecha {}.",
+                referenceDate);
+
+        List<RoomOccupancySummaryDto> summaries = roomService.getRoomOccupancySummary(referenceDate);
+
+        LOGGER.info("Solicitud de resumen de ocupación completada. Total de registros: {}.", summaries.size());
+
+        return ResponseEntity.ok(summaries);
     }
 
     /*

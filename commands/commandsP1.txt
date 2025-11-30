@@ -1,0 +1,46 @@
+# ===
+# Práctica 1
+# ===
+
+# Levantar los contenedores
+docker compose up -d
+
+# Acceder al contenedor de desarrollo
+docker compose exec springdev bash
+
+# Dentro del contenedor: preparar entorno
+apt-get update
+apt-get upgrade -y
+apt-get install -y curl wget git unzip zip ca-certificates gnupg software-properties-common build-essential apt-transport-https fontconfig httpie jq postgresql-client
+apt-get install -y openjdk-21-jdk maven gradle
+
+# Variables de entorno para Java
+echo 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64' >/etc/profile.d/java.sh
+echo 'export PATH=$JAVA_HOME/bin:$PATH' >>/etc/profile.d/java.sh
+. /etc/profile.d/java.sh
+
+# Verificar herramientas Java/Maven
+java -version
+mvn -version
+
+# Instalar Node.js 20
+curl -fsSL https://deb.nodesource.com/setup_20.x -o /tmp/nodesource_setup.sh
+bash /tmp/nodesource_setup.sh
+apt-get install -y nodejs
+node -v
+
+# Compilar proyecto
+mvn -q -DskipTests package
+
+# ===
+# Uso de perfiles
+# ===
+
+# Levantar el proyecto con el perfil default
+mvn spring-boot:run
+
+# Levantar el proyecto con el perfil test
+mvn spring-boot:run -Dspring-boot.run.profiles=test
+
+# Levantar el proyecto con el perfil prod
+mvn spring-boot:run -Dspring-boot.run.profiles=prod

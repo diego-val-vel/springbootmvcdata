@@ -1,0 +1,54 @@
+# ===
+# Práctica 4
+# ===
+
+# Cambiarse a la rama
+cd /springbootmvcdata
+git checkout feature/practica4
+
+# Dentro del contenedor
+cd /workspace
+./mvnw spring-boot:run
+
+# Crear una habitación desde la vista
+http://localhost:8080/rooms/new
+
+-- Habitación 1
+Code: STD-101
+Name: Standard King
+Capacity: 2
+Base price per night: 1500.00
+Active: marcado
+
+-- Habitación 2
+Code: DLX-201
+Name: Deluxe Double
+Capacity: 4
+Base price per night: 2500.00
+Active: marcado
+
+-- Habitación 3
+Code: SUI-301
+Name: Junior Suite
+Capacity: 3
+Base price per night: 3200.00
+Active: marcado
+
+# Ver listado
+http://localhost:8080/rooms
+
+# Ver detalle de una habitación
+http://localhost:8080/rooms/1
+
+# Editar una habitación
+http://localhost:8080/rooms/1/edit
+
+# Cambio de idiomas
+http://localhost:8080/rooms?lang=es
+http://localhost:8080/rooms?lang=en
+
+# Crear varias habitaciones y probar lo siguiente.
+http://localhost:8080/rooms?size=2
+http://localhost:8080/rooms?size=2&page=1
+http://localhost:8080/rooms?size=2&sort=code&dir=asc
+http://localhost:8080/rooms?size=2&sort=price&dir=desc

@@ -112,6 +112,11 @@ Excluye un campo al serializar/deserializar JSON.
 - @JsonProperty
 Personaliza el nombre de una propiedad en JSON.
 
+- @JsonInclude
+Controla qué propiedades se incluyen en la serialización JSON.
+Por ejemplo, @JsonInclude(JsonInclude.Include.NON_NULL) evita enviar campos con valor null en las respuestas,
+lo cual es útil para DTOs de filtros opcionales (como los filtros de búsqueda avanzada).
+
 ===
 Lombok
 ===
@@ -130,6 +135,7 @@ Genera un constructor con todos los campos.
 
 - @Builder.Default
 Define valores por defecto en campos dentro de un builder.
+Se asegura de que el valor de inicialización se respete cuando se construye el objeto con el builder.
 
 ===
 JUnit (pruebas)
@@ -163,7 +169,8 @@ Permite definir nombre de columna, longitud, si acepta null, si es unique, etc.
 
 - @ManyToOne
 Define una relación Muchos-a-Uno entre entidades.
-Se usa, por ejemplo, en BookingEntity para referenciar a RoomEntity o GuestEntity cuando muchas reservaciones corresponden a una misma habitación o huésped.
+Se usa, por ejemplo, en BookingEntity para referenciar a RoomEntity o GuestEntity cuando muchas reservaciones
+corresponden a una misma habitación o huésped.
 
 - @OneToMany
 Define una relación Uno-a-Muchos entre entidades.
@@ -175,4 +182,20 @@ Ejemplo: @JoinColumn(name = "room_id") indica que la columna room_id enlaza con 
 
 - @Enumerated
 Indica cómo se debe persistir un enum en la base de datos.
-Usualmente se usa con EnumType.STRING para guardar el nombre del enum (CONFIRMED, CREATED, CANCELLED, etc.) en vez de su ordinal numérico.
+Usualmente se usa con EnumType.STRING para guardar el nombre del enum (CONFIRMED, CREATED, CANCELLED, etc.)
+en vez de su ordinal numérico.
+
+===
+Spring Data JPA (consultas y parámetros)
+===
+
+- @Query
+Permite definir manualmente la consulta JPA/JPQL o SQL nativa en un método de repositorio de Spring Data.
+Se usa cuando las consultas derivadas por nombre de método no son suficientes o se requiere un JOIN, GROUP BY,
+agregaciones o filtros complejos.
+Ejemplo: @Query("select r from RoomEntity r where lower(r.name) like lower(concat('%', :name, '%'))")
+
+- @Param
+Anotación para nombrar y vincular parámetros en consultas @Query.
+Permite usar nombres descriptivos en la consulta y en la firma del método.
+Ejemplo: findByNameLike(@Param("name") String name) y usar :name dentro del JPQL.

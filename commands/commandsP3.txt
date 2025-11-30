@@ -1,0 +1,142 @@
+# ===
+# Práctica 3
+# ===
+
+###
+# Parte 1
+###
+
+# Cambiarse a la rama
+cd /springbootmvcdata
+git checkout feature/practica3_pt1
+
+# Dentro del contenedor
+cd /workspace
+./mvnw spring-boot:run
+
+# Listar habitaciones
+curl -i http://localhost:8080/api/rooms
+
+# Crear habitación (correctas)
+curl -i -X POST http://localhost:8080/api/rooms \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "STD-101",
+    "name": "Standard King",
+    "capacity": 2,
+    "basePricePerNight": 1500.00
+  }'
+
+curl -i -X POST http://localhost:8080/api/rooms \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "DLX-201",
+    "name": "Deluxe Queen",
+    "capacity": 3,
+    "basePricePerNight": 2200.00
+  }'
+
+# Consultar habitación
+curl -i http://localhost:8080/api/rooms/1
+
+# Actualizar habitación
+curl -i -X PUT http://localhost:8080/api/rooms/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Standard King Renovada",
+    "capacity": 2,
+    "basePricePerNight": 1800.00,
+    "active": false
+  }'
+
+# Eliminar habitación
+curl -i -X DELETE http://localhost:8080/api/rooms/2
+
+# Crear habitaciones (incorrectas)
+curl -i -X POST http://localhost:8080/api/rooms \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "ERR-001",
+    "name": "",
+    "capacity": 2,
+    "basePricePerNight": 1000.00
+  }'
+
+curl -i -X POST http://localhost:8080/api/rooms \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "ERR-002",
+    "name": "Capacidad Cero",
+    "capacity": 0,
+    "basePricePerNight": 1000.00
+  }'
+
+curl -i -X POST http://localhost:8080/api/rooms \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "STD-101",
+    "name": "Standard King Duplicada",
+    "capacity": 2,
+    "basePricePerNight": 1500.00
+  }'
+
+###
+# Parte 2
+###
+
+# Cambiarse a la rama
+cd /springbootmvcdata
+git checkout feature/practica3_pt2
+
+# Dentro del contenedor
+cd /workspace
+./mvnw spring-boot:run
+
+# Crear habitación
+curl -i -X POST http://localhost:8080/api/rooms \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "STD-101",
+    "name": "Standard King",
+    "capacity": 2,
+    "basePricePerNight": 1500.00
+  }'
+
+curl -i -X POST http://localhost:8080/api/rooms \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "DLX-201",
+    "name": "Deluxe Queen",
+    "capacity": 3,
+    "basePricePerNight": 2200.00
+  }'
+
+# Verificar listado JSON y el cambio de nombre de propiedad (pricePerNight)
+curl -i http://localhost:8080/api/rooms
+
+# Thymeleaf
+
+# Listado HTML
+curl -i http://localhost:8080/rooms
+
+# Detalle HTML rooms
+curl -i http://localhost:8080/rooms/1
+curl -i http://localhost:8080/rooms/2
+
+# Detalle HTML rooms (vía browser)
+http://localhost:8080/rooms
+
+# Verificar que el campo interno no se expone en JSON
+# Modificar el RoomService.createRoom para asignar un valor en las notas internas.
+
+curl -i -X POST http://localhost:8080/api/rooms \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "INT-999",
+    "name": "Habitación con notas internas",
+    "capacity": 2,
+    "basePricePerNight": 1234.50
+  }'
+
+# Verificar la room con notas
+curl -i http://localhost:8080/api/rooms

@@ -1,22 +1,30 @@
 package com.segurosargos.hotelbook.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import com.segurosargos.hotelbook.dto.RoomCreateRequestDto;
 import com.segurosargos.hotelbook.dto.RoomDetailResponseDto;
+import com.segurosargos.hotelbook.dto.RoomOccupancySummaryDto;
 import com.segurosargos.hotelbook.dto.RoomPageResultDto;
+import com.segurosargos.hotelbook.dto.RoomSearchFilterDto;
 import com.segurosargos.hotelbook.dto.RoomSummaryResponseDto;
 import com.segurosargos.hotelbook.dto.RoomUpdateRequestDto;
 import com.segurosargos.hotelbook.exception.BookingNotFoundException;
 import com.segurosargos.hotelbook.exception.InvalidBookingException;
 import com.segurosargos.hotelbook.model.Room;
+import com.segurosargos.hotelbook.model.RoomEntity;
+import com.segurosargos.hotelbook.repository.RoomJpaRepository;
+import com.segurosargos.hotelbook.repository.RoomOccupancyView;
 import com.segurosargos.hotelbook.repository.RoomRepository;
+import com.segurosargos.hotelbook.repository.RoomSpecifications;
 
 /*
  * Servicio que encapsula la lógica de negocio relacionada con las habitaciones.
@@ -32,8 +40,11 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
 
-    public RoomService(RoomRepository roomRepository) {
+    private final RoomJpaRepository roomJpaRepository;
+
+    public RoomService(RoomRepository roomRepository, RoomJpaRepository roomJpaRepository) {
         this.roomRepository = roomRepository;
+        this.roomJpaRepository = roomJpaRepository;
     }
 
     /*
@@ -201,6 +212,80 @@ public class RoomService {
         }
 
         return buildPageResult(filteredRooms, normalizedPage, normalizedSize, sort, direction);
+    }
+
+    /*
+     * Recupera una página de habitaciones aplicando un conjunto avanzado de filtros
+     * basado en Specifications. Todos los campos del filtro son opcionales.
+     */
+    public RoomPageResultDto searchRoomsAdvanced(RoomSearchFilterDto filter,
+                                                 int page,
+                                                 int size,
+                                                 String sort,
+                                                 String direction) {
+
+        LOGGER.info(
+                "Buscando habitaciones con filtro avanzado. filter={}, page={}, size={}, sort={}, direction={}.",
+                filter, page, size, sort, direction);
+
+        if (filter == null) {
+            LOGGER.info("Filtro avanzado nulo, delegando en getRoomsPage.");
+            return getRoomsPage(page, size, sort, direction);
+        }
+
+        int normalizedPage = Math.max(page, 0);
+        int normalizedSize = size <= 0 ? 10 : size;
+
+        Specification<RoomEntity> specification = Specification
+                .where(RoomSpecifications.nameContainsIgnoreCase(filter.getNameContains()))
+                .and(RoomSpecifications.capacityGreaterOrEqual(filter.getMinCapacity()))
+                .and(RoomSpecifications.basePriceGreaterOrEqual(filter.getMinBasePricePerNight()))
+                .and(RoomSpecifications.basePriceLessOrEqual(filter.getMaxBasePricePerNight()))
+                .and(RoomSpecifications.onlyActive(filter.getOnlyActive()))
+                .and(RoomSpecifications.availableBetween(filter.getAvailableFrom(),
+                        filter.getAvailableTo()));
+
+        List<RoomEntity> entities = roomJpaRepository.findAll(specification);
+
+        LOGGER.info("La consulta avanzada recuperó {} habitaciones desde la base de datos.",
+                entities.size());
+
+        List<Room> rooms = entities.stream()
+                .map(this::mapToModel)
+                .collect(Collectors.toList());
+
+        Comparator<Room> comparator = buildRoomComparator(sort);
+
+        if (comparator != null) {
+            if ("desc".equalsIgnoreCase(direction)) {
+                comparator = comparator.reversed();
+            }
+            rooms = rooms.stream()
+                    .sorted(comparator)
+                    .collect(Collectors.toList());
+        }
+
+        return buildPageResult(rooms, normalizedPage, normalizedSize, sort, direction);
+    }
+
+    /*
+     * Recupera un resumen de ocupación por habitación para una fecha de referencia.
+     * Si la fecha de referencia es nula, se utiliza la fecha actual del sistema.
+     */
+    public List<RoomOccupancySummaryDto> getRoomOccupancySummary(LocalDate referenceDate) {
+        LOGGER.info("Recuperando resumen de ocupación de habitaciones para la fecha {}.",
+                referenceDate);
+
+        LocalDate effectiveDate = referenceDate != null ? referenceDate : LocalDate.now();
+
+        List<RoomOccupancyView> views = roomJpaRepository
+                .findRoomOccupancySummaryByReferenceDate(effectiveDate);
+
+        LOGGER.info("Se construirá el resumen de ocupación para {} habitaciones.", views.size());
+
+        return views.stream()
+                .map(this::mapToRoomOccupancySummaryDto)
+                .collect(Collectors.toList());
     }
 
     /*
@@ -381,6 +466,31 @@ public class RoomService {
                 .capacity(room.getCapacity())
                 .basePricePerNight(room.getBasePricePerNight())
                 .active(room.isActive())
+                .build();
+    }
+
+    private RoomOccupancySummaryDto mapToRoomOccupancySummaryDto(RoomOccupancyView view) {
+        return RoomOccupancySummaryDto.builder()
+                .roomId(view.getRoomId())
+                .roomCode(view.getRoomCode())
+                .roomName(view.getRoomName())
+                .basePricePerNight(view.getBasePricePerNight())
+                .activeBookingsCount(view.getActiveBookingsCount())
+                .build();
+    }
+
+    private Room mapToModel(RoomEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        return Room.builder()
+                .id(entity.getId())
+                .code(entity.getCode())
+                .name(entity.getName())
+                .capacity(entity.getCapacity())
+                .basePricePerNight(entity.getBasePricePerNight())
+                .active(entity.isActive())
+                .internalNotes(entity.getInternalNotes())
                 .build();
     }
 }
