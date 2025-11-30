@@ -3,6 +3,7 @@ package com.segurosargos.hotelbook.repository;
 import java.time.LocalDate;
 import java.util.List;
 import com.segurosargos.hotelbook.model.BookingEntity;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -77,4 +78,28 @@ public interface BookingJpaRepository extends JpaRepository<BookingEntity, Long>
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
             @Param("status") String status);
+
+    /*
+     * Variante optimizada que utiliza EntityGraph para inicializar de forma
+     * anticipada las asociaciones room y guest. Se indica explícitamente la
+     * consulta JPQL para evitar que Spring Data intente derivar la consulta
+     * a partir del nombre del método y provoque un error de análisis.
+     */
+    @EntityGraph(attributePaths = {"room", "guest"})
+    @Query("select b from BookingEntity b")
+    List<BookingEntity> findAllWithRoomAndGuestEntityGraph();
+
+    /*
+     * Variante optimizada que utiliza una consulta JPQL con JOIN FETCH para
+     * inicializar las asociaciones room y guest en una sola consulta. Esta
+     * forma también elimina el problema N+1 al traer toda la información
+     * necesaria en el primer acceso.
+     */
+    @Query(
+            "select b " +
+                    "from BookingEntity b " +
+                    "join fetch b.room r " +
+                    "join fetch b.guest g"
+    )
+    List<BookingEntity> findAllWithRoomAndGuestFetchJoin();
 }

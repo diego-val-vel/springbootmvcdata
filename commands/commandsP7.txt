@@ -1,0 +1,76 @@
+# ===
+# Práctica 7
+# ===
+
+# Cambiarse a la rama
+cd /springbootmvcdata
+git checkout feature/practica7
+
+# Dentro del contenedor
+cd /workspace
+./mvnw -DskipTests clean spring-boot:run
+
+-- Parte 1
+
+# Endpoint lazy-basic
+curl "http://localhost:8080/api/debug/bookings/lazy-basic" | jq
+
+-- Parte 2
+
+# Endpoint con la variante naive (N+1)
+curl "http://localhost:8080/api/debug/bookings/nplus1-naive" | jq
+
+# Endpoint con la variante usando EntityGraph
+curl "http://localhost:8080/api/debug/bookings/entitygraph" | jq
+
+# Endpoint con la variante usando JOIN FETCH
+curl "http://localhost:8080/api/debug/bookings/join-fetch" | jq
+
+-- Parte 3
+
+# Monitorear vía SQL
+SELECT id, status
+FROM public.bookings
+WHERE id = 3;
+
+SELECT id, confirmed_bookings_count
+FROM public.guests
+WHERE id = (SELECT guest_id FROM public.bookings WHERE id = 3);
+
+SELECT id, last_booking_date
+FROM public.rooms
+WHERE id = (SELECT room_id FROM public.bookings WHERE id = 3);
+
+# Endpoint para confirmar una reserva normal
+curl -X POST "http://localhost:8080/api/bookings/1/confirm" | jq
+
+# Endpoint para confirmar con error intencional (rollback)
+curl -X POST "http://localhost:8080/api/bookings/1/confirm-with-error" | jq
+
+# Endpoint para cancelar una reserva
+curl -X POST "http://localhost:8080/api/bookings/1/cancel" | jq
+
+# Flujo alterno
+curl -X POST "http://localhost:8080/api/bookings/3/confirm-with-error" | jq
+curl -X POST "http://localhost:8080/api/bookings/3/confirm" | jq
+curl -X POST "http://localhost:8080/api/bookings/3/cancel" | jq
+
+-- Validación por SQL
+
+-- 1. Esperado que el booking 3 esté en CANCELLED (después de todo el flujo)
+SELECT id, status
+FROM public.bookings
+ORDER BY id;
+
+-- 2. Esperado que para el huésped 3 confirmed_bookings_count = 0
+
+SELECT g.id, g.email, g.confirmed_bookings_count
+FROM public.guests g
+JOIN public.bookings b ON b.guest_id = g.id
+WHERE b.id = 3;
+
+-- 3. Esperado que para la habitación de booking 3 last_booking_date = '2025-03-01'.
+SELECT r.id, r.code, r.last_booking_date
+FROM public.rooms r
+JOIN public.bookings b ON b.room_id = r.id
+WHERE b.id = 3;

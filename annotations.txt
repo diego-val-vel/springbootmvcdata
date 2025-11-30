@@ -199,3 +199,12 @@ Ejemplo: @Query("select r from RoomEntity r where lower(r.name) like lower(conca
 Anotación para nombrar y vincular parámetros en consultas @Query.
 Permite usar nombres descriptivos en la consulta y en la firma del método.
 Ejemplo: findByNameLike(@Param("name") String name) y usar :name dentro del JPQL.
+
+===
+Transacciones (Spring / Spring Data JPA)
+===
+
+- @Transactional
+Indica que un método o clase debe ejecutarse dentro de una transacción de base de datos.
+Si el método termina correctamente, la transacción hace commit; si ocurre una excepción
+en tiempo de ejecución (RuntimeException), Spring hace rollback de todos los cambios.
