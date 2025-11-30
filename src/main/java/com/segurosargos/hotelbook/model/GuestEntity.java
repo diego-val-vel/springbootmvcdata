@@ -5,6 +5,7 @@ import java.util.List;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -56,6 +57,13 @@ public class GuestEntity {
      */
     @Column(name = "document_number", length = 100)
     private String documentNumber;
+
+    /*
+     * Número de reservas confirmadas asociadas a este huésped.
+     */
+    @Column(name = "confirmed_bookings_count", nullable = false)
+    @Default
+    private Integer confirmedBookingsCount = 0;
 
     /*
      * Lista de reservas asociadas a este huésped.

@@ -1,6 +1,7 @@
 package com.segurosargos.hotelbook.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.persistence.*;
@@ -65,6 +66,12 @@ public class RoomEntity {
     @JsonIgnore
     @Column(name = "internal_notes")
     private String internalNotes;
+
+    /*
+     * Fecha de la última reserva confirmada asociada a esta habitación.
+     */
+    @Column(name = "last_booking_date")
+    private LocalDate lastBookingDate;
 
     /*
      * Lista de reservas asociadas a esta habitación.
