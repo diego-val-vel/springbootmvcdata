@@ -3,19 +3,19 @@ Anotaciones Spring Boot / contexto
 ===
 
 - @SpringBootApplication
-Marca la clase principal de Spring Boot (configuración, autoconfiguración y escaneo de componentes).
+Marca la clase principal de Spring Boot (configuracion, autoconfiguracion y escaneo de componentes).
 
 - @SpringBootTest
 Levanta el contexto completo de Spring Boot para pruebas.
 
 - @Configuration
-Indica que una clase define beans de configuración para el contenedor de Spring (clases de configuración explícita).
+Indica que una clase define beans de configuracion para el contenedor de Spring (clases de configuracion explicita).
 
 - @Bean
-Marca un método dentro de una clase @Configuration cuyo valor de retorno será registrado como bean en el contexto de Spring.
+Marca un metodo dentro de una clase @Configuration cuyo valor de retorno sera registrado como bean en el contexto de Spring.
 
 - @Profile
-Restringe la creación de un bean a uno o varios perfiles de Spring.
+Restringe la creacion de un bean a uno o varios perfiles de Spring.
 Solo se registra el bean anotado cuando el perfil activo (spring.profiles.active) coincide con el perfil indicado en @Profile.
 Permite tener diferentes implementaciones de una misma interfaz para distintos ambientes (dev, prod, test, inmemory, etc.).
 
@@ -24,125 +24,155 @@ Anotaciones web / MVC
 ===
 
 - @Controller
-Controlador web orientado a vistas. El valor de retorno de sus métodos se interpreta como nombre lógico de vista.
+Controlador web orientado a vistas. El valor de retorno de sus metodos se interpreta como nombre logico de vista.
 
 - @RestController
-Controlador web cuyos métodos devuelven JSON.
+Controlador web cuyos metodos devuelven JSON.
+Equivale a @Controller + @ResponseBody aplicado a todos los metodos.
 
 - @RequestMapping
-Define la ruta base para los métodos de un controlador.
+Define la ruta base para los metodos de un controlador.
+Tambien permite configurar el metodo HTTP y otros atributos de mapeo.
 
 - @PostMapping
-Mapea un método a peticiones HTTP POST.
+Mapea un metodo a peticiones HTTP POST.
 
 - @GetMapping
-Mapea un método a peticiones HTTP GET.
+Mapea un metodo a peticiones HTTP GET.
 
 - @PutMapping
-Mapea un método a peticiones HTTP PUT.
+Mapea un metodo a peticiones HTTP PUT.
 
 - @DeleteMapping
-Mapea un método a peticiones HTTP DELETE.
+Mapea un metodo a peticiones HTTP DELETE.
 
 - @PathVariable
-Vincula un fragmento de la URL con un parámetro del método.
+Vincula un fragmento de la URL con un parametro del metodo.
+Ejemplo: /api/rooms/{id} se vincula a un parametro Long id.
 
 - @RequestBody
-Vincula el cuerpo JSON de la petición con un parámetro.
+Vincula el cuerpo JSON de la peticion con un parametro del metodo.
+Se usa tipicamente en controladores REST para recibir DTOs.
 
 - @RequestParam
-Vincula parámetros de query (?page, ?size, ?sort, ?dir, etc.) con argumentos del método.
-Permite definir valores por defecto y marcar parámetros como opcionales u obligatorios.
+Vincula parametros de query (?page, ?size, ?sort, ?direction, etc.) con argumentos del metodo.
+Permite definir valores por defecto y marcar parametros como opcionales u obligatorios.
 
 - @ModelAttribute
 Vincula los campos de un formulario HTML con un DTO del lado del servidor.
+Se usa principalmente en controladores MVC para manejar formularios Thymeleaf.
 
 ===
-Validación (Bean Validation / Jakarta Validation)
+Validacion (Bean Validation / Jakarta Validation)
 ===
 
 - @Valid
 Dispara Bean Validation sobre el objeto anotado.
+Si el DTO tiene anotaciones de validacion (@NotBlank, @Size, etc.) se evaluan antes de ejecutar el metodo.
+En caso de violaciones, se lanza una excepcion de validacion que puede manejarse globalmente.
 
 - @NotBlank
-Cadena obligatoria, no permite null, vacío ni espacios.
+Cadena obligatoria, no permite null, vacio ni solo espacios en blanco.
+Se usa en campos como codigo, nombre, email, etc.
 
 - @Size
-Restringe la longitud mínima y/o máxima.
+Restringe la longitud minima y/o maxima de una cadena o coleccion.
+Ejemplo: @Size(max = 100) para limitar el largo del nombre de una habitacion.
 
 - @NotNull
-Campo obligatorio.
+Campo obligatorio. No permite valores null.
+Util para campos numericos u objetos que deben existir (capacidad, precio, etc.).
 
 - @Min
-Define un valor numérico mínimo.
+Define un valor numerico minimo para tipos enteros o long.
+Ejemplo: @Min(1) para asegurar que la capacidad sea al menos 1.
 
 - @DecimalMin
-Define un valor decimal mínimo para un número.
+Define un valor decimal minimo para un numero (BigDecimal, Double, etc.).
+Ejemplo: @DecimalMin("0.0") para asegurar que el precio no sea negativo.
 
 - @Digits
-Restringe la cantidad de dígitos enteros y decimales permitidos.
+Restringe la cantidad de digitos enteros y decimales permitidos.
+Ejemplo: @Digits(integer = 8, fraction = 2) para precios con hasta 8 enteros y 2 decimales.
 
 ===
 Estereotipos Spring (componentes)
 ===
 
 - @Service
-Marca una clase de lógica de negocio.
+Marca una clase de logica de negocio.
+Indica al contenedor de Spring que debe registrarla como bean de servicio.
 
 - @Repository
-Marca una clase de acceso a datos.
+Marca una clase de acceso a datos (DAO, adaptador de repositorio).
+Ademas activa la traduccion de excepciones especificas de persistencia a excepciones genericas de Spring.
 
 ===
 Manejo global de errores
 ===
 
 - @ControllerAdvice
-Clase con lógica transversal para manejar excepciones.
+Clase con logica transversal para manejar excepciones de forma centralizada.
+Permite capturar errores de todos los controladores y construir respuestas consistentes (por ejemplo ErrorResponseDto).
 
 - @ExceptionHandler
-Indica que un método maneja un tipo de excepción.
+Indica que un metodo maneja un tipo de excepcion especifico.
+Se utiliza dentro de clases anotadas con @ControllerAdvice o dentro de controladores.
 
 ===
-Serialización JSON (Jackson)
+Serializacion JSON (Jackson)
 ===
 
 - @JsonIgnore
 Excluye un campo al serializar/deserializar JSON.
+Util para evitar ciclos infinitos (relaciones bidireccionales) o para ocultar informacion interna.
 
 - @JsonProperty
 Personaliza el nombre de una propiedad en JSON.
+Permite exponer nombres distintos a los nombres de campo Java.
 
 - @JsonInclude
-Controla qué propiedades se incluyen en la serialización JSON.
+Controla que propiedades se incluyen en la serializacion JSON.
 Por ejemplo, @JsonInclude(JsonInclude.Include.NON_NULL) evita enviar campos con valor null en las respuestas,
-lo cual es útil para DTOs de filtros opcionales (como los filtros de búsqueda avanzada).
+lo cual es util para DTOs de filtros opcionales (como los filtros de busqueda avanzada).
 
 ===
 Lombok
 ===
 
 - @Data
-Genera getters, setters, toString, equals y hashCode.
+Genera getters, setters, toString, equals y hashCode sobre todos los campos.
+Reduce el codigo boilerplate en DTOs y entidades de dominio simples.
 
 - @Builder
-Genera un builder para construir instancias.
+Genera un builder para construir instancias de la clase de forma fluida.
+Ejemplo: Room.builder().code("STD-101").capacity(2).build().
 
 - @NoArgsConstructor
 Genera un constructor sin argumentos.
+Requerido por JPA y algunas herramientas de serializacion/deserializacion.
 
 - @AllArgsConstructor
-Genera un constructor con todos los campos.
+Genera un constructor con todos los campos de la clase.
+Util para crear objetos completos de una sola llamada.
 
 - @Builder.Default
 Define valores por defecto en campos dentro de un builder.
-Se asegura de que el valor de inicialización se respete cuando se construye el objeto con el builder.
+Se asegura de que el valor de inicializacion se respete cuando se construye el objeto con el builder
+y no se establece ese campo explicitamente.
+
+- @RequiredArgsConstructor
+Genera un constructor que incluye solo los campos final y aquellos anotados con @NonNull.
+Se usa mucho en servicios y controladores para inyeccion de dependencias inmutable (constructor injection),
+evitando escribir manualmente el constructor.
 
 ===
 JUnit (pruebas)
 ===
 
 - @Test
-Marca un método como prueba unitaria.
+Marca un metodo como prueba unitaria.
+Los metodos anotados con @Test son ejecutados por el runner de pruebas de JUnit.
 
 ===
 Persistencia / JPA (Jakarta Persistence)
@@ -150,7 +180,7 @@ Persistencia / JPA (Jakarta Persistence)
 
 - @Entity
 Marca una clase como entidad JPA.
-Indica que sus instancias se mapearán a registros de una tabla en la base de datos.
+Indica que sus instancias se mapearan a registros de una tabla en la base de datos.
 
 - @Table
 Configura el nombre de la tabla y otros detalles de mapeo a nivel de tabla.
@@ -160,44 +190,44 @@ Ejemplo: @Table(name = "rooms") para mapear la entidad a la tabla "rooms".
 Identifica el campo que corresponde a la llave primaria de la entidad.
 
 - @GeneratedValue
-Configura la estrategia de generación del valor de la llave primaria.
-Ejemplo común: strategy = GenerationType.IDENTITY para usar autoincremento de la base de datos.
+Configura la estrategia de generacion del valor de la llave primaria.
+Ejemplo comun: strategy = GenerationType.IDENTITY para usar autoincremento de la base de datos.
 
 - @Column
 Personaliza el mapeo de un campo a una columna.
 Permite definir nombre de columna, longitud, si acepta null, si es unique, etc.
 
 - @ManyToOne
-Define una relación Muchos-a-Uno entre entidades.
+Define una relacion Muchos-a-Uno entre entidades.
 Se usa, por ejemplo, en BookingEntity para referenciar a RoomEntity o GuestEntity cuando muchas reservaciones
-corresponden a una misma habitación o huésped.
+corresponden a una misma habitacion o huesped.
 
 - @OneToMany
-Define una relación Uno-a-Muchos entre entidades.
-Se usa, por ejemplo, en RoomEntity para representar la lista de BookingEntity asociadas a una habitación.
+Define una relacion Uno-a-Muchos entre entidades.
+Se usa, por ejemplo, en RoomEntity para representar la lista de BookingEntity asociadas a una habitacion.
 
 - @JoinColumn
-Especifica la columna que actúa como llave foránea en una relación.
+Especifica la columna que actua como llave foranea en una relacion.
 Ejemplo: @JoinColumn(name = "room_id") indica que la columna room_id enlaza con la entidad RoomEntity.
 
 - @Enumerated
-Indica cómo se debe persistir un enum en la base de datos.
+Indica como se debe persistir un enum en la base de datos.
 Usualmente se usa con EnumType.STRING para guardar el nombre del enum (CONFIRMED, CREATED, CANCELLED, etc.)
-en vez de su ordinal numérico.
+en vez de su ordinal numerico.
 
 ===
-Spring Data JPA (consultas y parámetros)
+Spring Data JPA (consultas y parametros)
 ===
 
 - @Query
-Permite definir manualmente la consulta JPA/JPQL o SQL nativa en un método de repositorio de Spring Data.
-Se usa cuando las consultas derivadas por nombre de método no son suficientes o se requiere un JOIN, GROUP BY,
+Permite definir manualmente la consulta JPA/JPQL o SQL nativa en un metodo de repositorio de Spring Data.
+Se usa cuando las consultas derivadas por nombre de metodo no son suficientes o se requiere un JOIN, GROUP BY,
 agregaciones o filtros complejos.
 Ejemplo: @Query("select r from RoomEntity r where lower(r.name) like lower(concat('%', :name, '%'))")
 
 - @Param
-Anotación para nombrar y vincular parámetros en consultas @Query.
-Permite usar nombres descriptivos en la consulta y en la firma del método.
+Anotacion para nombrar y vincular parametros en consultas @Query.
+Permite usar nombres descriptivos en la consulta y en la firma del metodo.
 Ejemplo: findByNameLike(@Param("name") String name) y usar :name dentro del JPQL.
 
 ===
@@ -205,6 +235,27 @@ Transacciones (Spring / Spring Data JPA)
 ===
 
 - @Transactional
-Indica que un método o clase debe ejecutarse dentro de una transacción de base de datos.
-Si el método termina correctamente, la transacción hace commit; si ocurre una excepción
-en tiempo de ejecución (RuntimeException), Spring hace rollback de todos los cambios.
+Indica que un metodo o clase debe ejecutarse dentro de una transaccion de base de datos.
+Si el metodo termina correctamente, la transaccion hace commit; si ocurre una excepcion
+en tiempo de ejecucion (RuntimeException), Spring hace rollback de todos los cambios.
+En la practica se usa, por ejemplo, en BookingManagementService para garantizar que la
+actualizacion de Booking, Guest y Room sea atomica.
+
+===
+Seguridad (Spring Security)
+===
+
+- @EnableWebSecurity
+Activa la configuracion de Spring Security para aplicaciones web.
+Permite registrar un SecurityFilterChain que intercepta todas las peticiones HTTP y aplica:
+autenticacion, autorizacion, CSRF, configuracion de login/logout, etc.
+Se usa en clases de configuracion como SecurityConfig.
+
+- @EnableMethodSecurity
+Activa la seguridad a nivel de metodo (por ejemplo @PreAuthorize y @PostAuthorize) en servicios y controladores.
+Con prePostEnabled = true se habilita el uso de expresiones como:
+@PreAuthorize("hasRole('ADMIN')") sobre metodos de servicio.
+
+- @PreAuthorize
+Aplica reglas de autorizacion antes de ejecutar un metodo.
+Evalua una expresion SpEL basada en el usuario autenticado, sus roles y los parametros del metodo.

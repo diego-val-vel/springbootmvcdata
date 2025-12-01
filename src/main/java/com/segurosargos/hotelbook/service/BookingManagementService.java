@@ -10,6 +10,7 @@ import com.segurosargos.hotelbook.repository.BookingJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ public class BookingManagementService {
      * Todos los cambios se aplican dentro de una única transacción.
      */
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public BookingStatusChangeResponseDto confirmBooking(Long bookingId) {
         return doConfirmBooking(bookingId, false);
     }
@@ -45,6 +47,7 @@ public class BookingManagementService {
      * ningún cambio queda persistido en la base de datos.
      */
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public BookingStatusChangeResponseDto confirmBookingWithSimulatedError(Long bookingId) {
         return doConfirmBooking(bookingId, true);
     }
@@ -58,6 +61,7 @@ public class BookingManagementService {
      * Los cambios se aplican dentro de una única transacción.
      */
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public BookingStatusChangeResponseDto cancelBooking(Long bookingId) {
         LOGGER.info("Iniciando cancelación transaccional de la reserva con id {}.", bookingId);
         BookingEntity booking = bookingJpaRepository.findById(bookingId)

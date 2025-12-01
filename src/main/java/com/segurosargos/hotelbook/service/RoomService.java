@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import com.segurosargos.hotelbook.dto.RoomCreateRequestDto;
 import com.segurosargos.hotelbook.dto.RoomDetailResponseDto;
@@ -50,6 +51,7 @@ public class RoomService {
     /*
      * Crea una nueva habitación a partir de los datos de entrada.
      */
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public RoomDetailResponseDto createRoom(RoomCreateRequestDto requestDto) {
         LOGGER.info("Creando una nueva habitación con código {}.", requestDto.getCode());
 
@@ -74,6 +76,7 @@ public class RoomService {
     /*
      * Actualiza una habitación existente identificada por su id.
      */
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public RoomDetailResponseDto updateRoom(Long id, RoomUpdateRequestDto requestDto) {
         LOGGER.info("Actualizando habitación con id {}.", id);
 
@@ -291,6 +294,7 @@ public class RoomService {
     /*
      * Elimina una habitación por su id.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteRoom(Long id) {
         LOGGER.info("Eliminando habitación con id {}.", id);
 
