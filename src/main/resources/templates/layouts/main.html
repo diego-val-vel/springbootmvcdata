@@ -20,6 +20,12 @@
                 <li><a href="#" th:text="#{nav.bookings}">Reservas</a></li>
             </ul>
         </nav>
+        <div class="hb-user-session">
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit">Cerrar sesión</button>
+            </form>
+        </div>
     </header>
 
     <main class="hb-main">

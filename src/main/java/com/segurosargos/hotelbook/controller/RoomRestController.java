@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -151,6 +152,7 @@ public class RoomRestController {
      * Crea una nueva habitación a partir de los datos de entrada.
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<RoomDetailResponseDto> createRoom(
             @Valid @RequestBody RoomCreateRequestDto requestDto) {
         LOGGER.info("Recibida solicitud para crear una nueva habitación con código {}.", requestDto.getCode());
@@ -164,6 +166,7 @@ public class RoomRestController {
      * Actualiza una habitación existente identificada por su id.
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<RoomDetailResponseDto> updateRoom(
             @PathVariable("id") Long id,
             @Valid @RequestBody RoomUpdateRequestDto requestDto) {
@@ -177,6 +180,7 @@ public class RoomRestController {
      * Elimina una habitación identificada por su id.
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteRoom(@PathVariable("id") Long id) {
         LOGGER.info("Recibida solicitud para eliminar la habitación con id {}.", id);
         roomService.deleteRoom(id);

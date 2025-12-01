@@ -1,0 +1,178 @@
+# ===
+# Práctica 8
+# ===
+
+# Cambiarse a la rama
+cd /springbootmvcdata
+git checkout feature/practica8
+
+# Dentro del contenedor
+cd /workspace
+./mvnw -DskipTests clean spring-boot:run
+
+# Bloque 1 - SecurityFilterChain (rutas públicas/privadas, roles)
+
+-- a) Endpoint público: health sin autenticación
+curl -i http://localhost:8080/actuator/health
+-- Esperado: 200 OK con un JSON tipo {"status":"UP"}.
+
+-- b) Intentar acceder a API sin autenticación
+curl -i http://localhost:8080/api/rooms
+-- Esperado: 401 Unauthorized con challenge de Basic Auth.
+
+-- Lectura de habitaciones con usuario viewer (solo lectura pero autenticado)
+curl -i -u viewer:viewer123 http://localhost:8080/api/rooms
+-- Esperado: 200 OK con el listado JSON de habitaciones.
+
+-- d) Endpoint de depuración restringido a ADMIN
+-- Sin autenticación
+curl -i http://localhost:8080/api/debug/bookings/nplus1-naive
+-- Esperado: 401 Unauthorized.
+
+-- Con viewer (no tiene rol)
+curl -i -u viewer:viewer123 http://localhost:8080/api/debug/bookings/nplus1-naive
+-- Esperado: 403 Forbidden.
+
+-- Con admin
+curl -i -u admin:admin123 http://localhost:8080/api/debug/bookings/nplus1-naive
+-- Esperado: 200 OK con la lista de BookingSummaryDebugDto.
+
+# Bloque 2 - autenticación con formulario e integración MVC
+
+-- Revisar en el navegador
+
+-- a) Acceso a /rooms sin autenticación (redirige a login)
+http://localhost:8080/rooms
+-- Redireccionamiento a /login.
+
+-- b) Hacer login vía formulario y reutilizar la sesión
+
+# Bloque 3 - autorización por roles y @PreAuthorize
+
+-- Crear habitación (POST /api/rooms)
+
+-- Intento con viewer (debe fallar)
+curl -i -u viewer:viewer123 \
+  -H "Content-Type: application/json" \
+  -d '{
+        "code": "R-999",
+        "name": "Habitacion Bloque 3 Viewer",
+        "capacity": 2,
+        "basePricePerNight": 1200.00
+      }' \
+  http://localhost:8080/api/rooms
+-- Esperado: 403 Forbidden
+
+/*
+Razones:
+
+SecurityConfig restringe POST /api/rooms a ADMIN o STAFF.
+@PreAuthorize("hasAnyRole('ADMIN','STAFF')") en RoomRestController.createRoom.
+@PreAuthorize("hasAnyRole('ADMIN','STAFF')") en RoomService.createRoom.
+*/
+
+-- Intento con staff (debe funcionar)
+curl -i -u staff:staff123 \
+  -H "Content-Type: application/json" \
+  -d '{
+        "code": "R-1000",
+        "name": "Habitacion Staff",
+        "capacity": 3,
+        "basePricePerNight": 1500.00
+      }' \
+  http://localhost:8080/api/rooms
+-- Esperado: 201 Created con el JSON de detalle de la nueva habitación.
+
+-- Intento con admin (también debe funcionar)
+curl -i -u admin:admin123 \
+  -H "Content-Type: application/json" \
+  -d '{
+        "code": "R-1001",
+        "name": "Habitacion Admin",
+        "capacity": 4,
+        "basePricePerNight": 2000.00
+      }' \
+  http://localhost:8080/api/rooms
+-- Esperado: 201 Created.
+
+-- Actualizar habitación (PUT /api/rooms/{id}), suponiendo que la habitación con id = ? existe.
+
+-- Intento con viewer (debe fallar)
+curl -i -u viewer:viewer123 \
+  -H "Content-Type: application/json" \
+  -X PUT \
+  -d '{
+        "name": "Habitacion Editada Viewer",
+        "capacity": 2,
+        "basePricePerNight": 1300.00,
+        "active": true
+      }' \
+  http://localhost:8080/api/rooms/1
+-- Esperado: 403 Forbidden.
+
+-- Intento con staff (debe funcionar)
+curl -i -u staff:staff123 \
+  -H "Content-Type: application/json" \
+  -X PUT \
+  -d '{
+        "name": "Habitacion Editada Staff",
+        "capacity": 2,
+        "basePricePerNight": 1300.00,
+        "active": true
+      }' \
+  http://localhost:8080/api/rooms/1
+-- Esperado: 200 OK con el JSON actualizado.
+
+-- Eliminar habitación (DELETE /api/rooms/{id})
+
+-- Intento con staff (debe fallar)
+curl -i -u staff:staff123 \
+  -X DELETE http://localhost:8080/api/rooms/1
+-- Esperado: 403 Forbidden
+-- (DELETE restringido a ADMIN en SecurityFilterChain y @PreAuthorize("hasRole('ADMIN')")).
+
+-- Intento con admin (debe funcionar)
+curl -i -u admin:admin123 \
+  -X DELETE http://localhost:8080/api/rooms/1
+-- Esperado: 204 No Content.
+
+-- Confirmar / cancelar reservas (BookingManagementController), suponiendo que hay una reserva con id 1.
+
+-- Con viewer (debe fallar)
+curl -i -u viewer:viewer123 \
+  -X POST http://localhost:8080/api/bookings/1/confirm
+-- Esperado: 403 Forbidden
+
+/*
+Razones:
+
+@PreAuthorize("hasAnyRole('ADMIN','STAFF')") en BookingManagementController.
+@PreAuthorize("hasAnyRole('ADMIN','STAFF')") en BookingManagementService.confirmBooking.
+*/
+
+-- Intento con staff (debe pasar la capa de seguridad)
+curl -i -u staff:staff123 \
+  -X POST http://localhost:8080/api/bookings/1/confirm
+
+/*
+Esperado:
+
+-- 200 OK con JSON de BookingStatusChangeResponseDto,
+-- o bien 400 Bad Request con mensaje de negocio si la reserva ya estaba confirmada (eso depende de los datos de prueba, pero seguridad ya está aplicándose bien).
+*/
+
+-- Simular error transaccional
+curl -i -u staff:staff123 \
+  -X POST http://localhost:8080/api/bookings/1/confirm-with-error
+
+/*
+-- Esperado:
+
+-- 500 Internal Server Error con el ErrorResponseDto estándar (rollback de la transacción), pero solo si el rol es correcto.
+-- Con viewer, seguiría siendo 403 y nunca llega a la lógica de negocio.
+*/
+
+-- Cancelar reserva
+curl -i -u staff:staff123 \
+  -X POST http://localhost:8080/api/bookings/1/cancel
+-- Esperado: 200 OK (dependiendo la lógica de negocio) o 400 si ya estaba cancelada, pero nunca 403 para staff/admin.
