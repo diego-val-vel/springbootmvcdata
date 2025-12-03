@@ -74,6 +74,13 @@ public class RoomEntity {
     private LocalDate lastBookingDate;
 
     /*
+     * Version de la entidad para soporte de concurrencia optimista.
+     */
+    @Version
+    @Column(name = "version", nullable = false)
+    private Integer version;
+
+    /*
      * Lista de reservas asociadas a esta habitación.
      */
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = false)

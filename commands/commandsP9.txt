@@ -1,0 +1,233 @@
+# ===
+# Práctica 9
+# ===
+
+# Cambiarse a la rama
+cd /springbootmvcdata
+git checkout feature/practica9
+
+# Dentro del contenedor
+cd /workspace
+./mvnw -DskipTests clean spring-boot:run
+
+# Bloque 1 - CORS para la API
+
+# Endpoint publico sin encabezado Origin (comportamiento normal)
+curl -i http://localhost:8080/actuator/health
+-- Esperado: 200 OK con JSON {"status":"UP"}.
+
+# Endpoint publico con encabezado Origin permitido
+curl -i \
+  -H "Origin: http://localhost:3000" \
+  http://localhost:8080/actuator/health
+/*
+Esperado:
+- 200 OK
+- Encabezado Access-Control-Allow-Origin: http://localhost:3000
+*/
+
+# Endpoint para acceso a /api/v1/rooms con autenticacion y Origin permitido
+curl -i \
+  -u viewer:viewer123 \
+  -H "Origin: http://localhost:3000" \
+  http://localhost:8080/api/v1/rooms
+/*
+Esperado:
+- 200 OK
+- Access-Control-Allow-Origin: http://localhost:3000
+- Listado JSON de habitaciones
+*/
+
+# Endpoint para simular preflight OPTIONS para /api/v1/rooms
+curl -i \
+  -X OPTIONS \
+  -H "Origin: http://localhost:3000" \
+  -H "Access-Control-Request-Method: GET" \
+  http://localhost:8080/api/v1/rooms
+/*
+Esperado:
+- 200 OK (o 204)
+- Access-Control-Allow-Origin: http://localhost:3000
+- Access-Control-Allow-Methods con al menos GET, POST, PUT, DELETE, OPTIONS
+*/
+
+# Bloque 2 - API versionada /api/v1/rooms
+
+# Endpoint para consultar listado de habitaciones en la API v1
+curl -i \
+  -u viewer:viewer123 \
+  http://localhost:8080/api/v1/rooms
+/*
+Esperado:
+- 200 OK
+- Cuerpo con lista de RoomSummaryResponseDto (igual que /api/rooms pero bajo /api/v1/rooms)
+*/
+
+# Endpoint para crear una habitacion via POST /api/v1/rooms (usuario STAFF)
+curl -i \
+  -u staff:staff123 \
+  -H "Content-Type: application/json" \
+  -d '{
+        "code": "V1-R-2000",
+        "name": "Habitacion V1 Staff",
+        "capacity": 2,
+        "basePricePerNight": 1800.00
+      }' \
+  http://localhost:8080/api/v1/rooms
+/*
+Esperado:
+- 201 Created
+- Encabezado Location: http://localhost:8080/api/v1/rooms/{idNuevo}
+- Cuerpo con RoomDetailResponseDto de la nueva habitacion
+*/
+
+# Endpoint para crear una habitacion via POST /api/v1/rooms (usuario ADMIN)
+curl -i \
+  -u admin:admin123 \
+  -H "Content-Type: application/json" \
+  -d '{
+        "code": "V1-R-2001",
+        "name": "Habitacion V1 Admin",
+        "capacity": 3,
+        "basePricePerNight": 2200.00
+      }' \
+  http://localhost:8080/api/v1/rooms
+/*
+Esperado:
+- 201 Created
+- Location con la URL del nuevo recurso
+*/
+
+# Endpoint para intentar crear una habitacion con viewer (no deberia tener permiso)
+curl -i \
+  -u viewer:viewer123 \
+  -H "Content-Type: application/json" \
+  -d '{
+        "code": "V1-R-2002",
+        "name": "Habitacion V1 Viewer",
+        "capacity": 2,
+        "basePricePerNight": 1500.00
+      }' \
+  http://localhost:8080/api/v1/rooms
+/*
+Esperado:
+- 403 Forbidden
+Razon: @PreAuthorize("hasAnyRole('ADMIN','STAFF')") en createRoom y reglas en SecurityConfig.
+*/
+
+# Endpoint para actualizar una habitacion existente via PUT /api/v1/rooms/{id} (usuario STAFF)
+-- Nota: ajustar el {id} a uno existente, por ejemplo el que regreso el Location anterior.
+curl -i \
+  -u staff:staff123 \
+  -H "Content-Type: application/json" \
+  -X PUT \
+  -d '{
+        "name": "Habitacion V1 Staff Actualizada",
+        "capacity": 2,
+        "basePricePerNight": 1900.00,
+        "active": true
+      }' \
+  http://localhost:8080/api/v1/rooms/1
+/*
+Esperado:
+- 200 OK
+- Cuerpo JSON con los datos actualizados
+*/
+
+# Endpoint para eliminar una habitacion via DELETE /api/v1/rooms/{id} (usuario ADMIN)
+-- Nota: ajustar el id a uno existente y que se pueda borrar.
+curl -i \
+  -u admin:admin123 \
+  -X DELETE \
+  http://localhost:8080/api/v1/rooms/1
+/*
+Esperado:
+- 204 No Content
+Razon: el controlador v1 devuelve explicitamente noContent() en deleteRoom.
+*/
+
+# Bloque 3 - Concurrencia optimista (@Version)
+
+# En este ejercicio la concurrencia optimista se basa en:
+# - Columna version en la tabla rooms (V5__add_version_to_rooms.sql).
+# - Campo @Version Integer version en RoomEntity.
+# - Manejo de excepciones OptimisticLockException / OptimisticLockingFailureException
+#   en GlobalExceptionHandler con respuesta HTTP 409 Conflict.
+#
+# Un conflicto real se produce cuando dos transacciones actualizan la misma habitacion
+# simultaneamente con versiones distintas. Esto es mas sencillo de demostrar con
+# dos instancias de la aplicacion o pruebas automatizadas que con comandos curl
+# secuenciales, por lo que aqui se explica a nivel conceptual:
+#
+#  - Transaccion A lee habitacion id=10, version=0.
+#  - Transaccion B lee habitacion id=10, version=0.
+#  - B guarda cambios primero -> version pasa a 1.
+#  - A intenta guardar sus cambios aun con version=0 -> se lanza OptimisticLockException.
+#  - GlobalExceptionHandler traduce a 409 Conflict con ErrorResponseDto.
+
+# Bloque 4 - ETag basado en la version de Room
+
+# Endpoint GET /api/v1/rooms/{id} para obtener el ETag actual
+-- Nota: ajustar {id} a una habitacion existente, por ejemplo 2.
+curl -i \
+  -u viewer:viewer123 \
+  http://localhost:8080/api/v1/rooms/2
+/*
+Esperado:
+- 200 OK
+- Encabezado ETag: "room-2-vX" (X es la version actual)
+- Cuerpo con RoomDetailResponseDto
+*/
+
+# Endpoint GET con If-None-Match usando el mismo ETag para obtener 304 Not Modified
+-- Importante: sustituir "room-2-vX" por el valor EXACTO devuelto en la respuesta anterior.
+curl -i \
+  -u viewer:viewer123 \
+  -H 'If-None-Match: "room-3-v1"' \
+  http://localhost:8080/api/v1/rooms/2
+/*
+Esperado:
+- 304 Not Modified
+- Sin cuerpo
+- ETag presente y coincidente
+*/
+
+# Endpoint para actualizar la habitacion para cambiar la version (usuario STAFF o ADMIN)
+-- Nota: ajustar el id al mismo del ejemplo anterior (2).
+curl -i \
+  -u staff:staff123 \
+  -H "Content-Type: application/json" \
+  -X PUT \
+  -d '{
+        "name": "Habitacion V1 con nueva version",
+        "capacity": 2,
+        "basePricePerNight": 1950.00,
+        "active": true
+      }' \
+  http://localhost:8080/api/v1/rooms/2
+/*
+Esperado:
+- 200 OK
+- Internamente, la version en la BD se incrementa por @Version.
+*/
+
+# Endpoint GET para observar el nuevo ETag despues de la actualizacion
+curl -i \
+  -u viewer:viewer123 \
+  http://localhost:8080/api/v1/rooms/2
+/*
+Esperado:
+- 200 OK
+- ETag: "room-2-vY" donde Y = X + 1 (o al menos distinto de X)
+*/
+
+# Endpoint GET con If-None-Match usando el ETag antiguo (X) simulando cliente desactualizado
+curl -i \
+  -u viewer:viewer123 \
+  -H 'If-None-Match: "room-2-vX"' \
+  http://localhost:8080/api/v1/rooms/2
+/*
+Esperado:
+- 200 OK (no 304), porque el ETag ya no coincide con la version actual.
+- Cuerpo con el detalle actualizado y nuevo ETag "room-2-vY".
+*/

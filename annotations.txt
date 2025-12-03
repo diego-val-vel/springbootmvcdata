@@ -50,6 +50,11 @@ Mapea un metodo a peticiones HTTP DELETE.
 Vincula un fragmento de la URL con un parametro del metodo.
 Ejemplo: /api/rooms/{id} se vincula a un parametro Long id.
 
+@RequestHeader
+Vincula el valor de un encabezado HTTP con un parametro del metodo del controlador.
+Permite leer headers como If-Match, Authorization, Accept-Language, etc., directamente en la firma del metodo.
+Se puede marcar como obligatorio u opcional y personalizar el nombre del encabezado cuando no coincide con el nombre del parametro Java.
+
 - @RequestBody
 Vincula el cuerpo JSON de la peticion con un parametro del metodo.
 Se usa tipicamente en controladores REST para recibir DTOs.
@@ -214,6 +219,11 @@ Ejemplo: @JoinColumn(name = "room_id") indica que la columna room_id enlaza con 
 Indica como se debe persistir un enum en la base de datos.
 Usualmente se usa con EnumType.STRING para guardar el nombre del enum (CONFIRMED, CREATED, CANCELLED, etc.)
 en vez de su ordinal numerico.
+
+@Version
+Marca un campo de la entidad como version para control de concurrencia optimista.
+Hibernate/JPA actualiza automaticamente este valor en cada modificacion y lo usa para detectar conflictos cuando dos transacciones intentan actualizar el mismo registro.
+Si la version enviada por la aplicacion no coincide con la version actual en base de datos, se lanza una excepcion de concurrencia (OptimisticLockException / OptimisticLockingFailureException) y la actualizacion se rechaza.
 
 ===
 Spring Data JPA (consultas y parametros)
