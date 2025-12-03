@@ -2,11 +2,15 @@ package com.segurosargos.hotelbook.exception;
 
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -97,6 +101,58 @@ public class GlobalExceptionHandler {
                 .build();
 
         LOGGER.warn("Recurso no encontrado en {}: {}", request.getRequestURI(), ex.getMessage());
+
+        return ResponseEntity.status(status).body(body);
+    }
+
+    /*
+     * Manejo de conflictos de concurrencia optimista sobre entidades de JPA.
+     * Se traduce a un estado HTTP 409 Conflict con un mensaje claro.
+     */
+    @ExceptionHandler({
+            OptimisticLockException.class,
+            OptimisticLockingFailureException.class
+    })
+    public ResponseEntity<ErrorResponseDto> handleOptimisticLocking(
+            Exception ex,
+            HttpServletRequest request) {
+
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        ErrorResponseDto body = ErrorResponseDto.builder()
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message("La entidad fue modificada por otra operación. Vuelva a cargar la información e intente de nuevo.")
+                .path(request.getRequestURI())
+                .build();
+
+        LOGGER.warn("Conflicto de concurrencia en {}: {}", request.getRequestURI(), ex.getMessage());
+
+        return ResponseEntity.status(status).body(body);
+    }
+
+    /*
+     * Manejo de errores de autorización de Spring Security.
+     * Mapea AccessDenied/AuthorizationDenied a 403 Forbidden.
+     */
+    @ExceptionHandler({
+            AuthorizationDeniedException.class,
+            AccessDeniedException.class
+    })
+    public ResponseEntity<ErrorResponseDto> handleAccessDenied(
+            RuntimeException ex,
+            HttpServletRequest request) {
+
+        HttpStatus status = HttpStatus.FORBIDDEN;
+
+        ErrorResponseDto body = ErrorResponseDto.builder()
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message("Acceso denegado. No tiene permisos para realizar esta operación.")
+                .path(request.getRequestURI())
+                .build();
+
+        LOGGER.warn("Acceso denegado en {}: {}", request.getRequestURI(), ex.getMessage());
 
         return ResponseEntity.status(status).body(body);
     }

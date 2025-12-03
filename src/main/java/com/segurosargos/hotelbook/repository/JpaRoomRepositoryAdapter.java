@@ -28,6 +28,15 @@ public class JpaRoomRepositoryAdapter implements RoomRepository {
     @Override
     public Room save(Room room) {
         RoomEntity entityToSave = mapToEntity(room);
+
+        if (entityToSave.getId() != null && entityToSave.getVersion() == null) {
+            RoomEntity current = roomJpaRepository.findById(entityToSave.getId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "No se encontró la habitación con id " + entityToSave.getId()
+                                    + " al intentar actualizar."));
+            entityToSave.setVersion(current.getVersion());
+        }
+
         RoomEntity savedEntity = roomJpaRepository.save(entityToSave);
         Room savedRoom = mapToModel(savedEntity);
         LOGGER.debug("Habitación persistida en base de datos con id {} y código {}.",

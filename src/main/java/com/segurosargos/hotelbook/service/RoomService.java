@@ -114,6 +114,24 @@ public class RoomService {
     }
 
     /*
+     * Obtiene la version actual de una habitacion por su id para soporte de concurrencia
+     * optimista y generacion de ETag.
+     */
+    public Integer getRoomVersionById(Long id) {
+        LOGGER.info("Recuperando version de la habitacion con id {}.", id);
+
+        RoomEntity entity = roomJpaRepository.findById(id)
+                .orElseThrow(() -> new BookingNotFoundException(
+                        "No se encontró la habitación con id " + id));
+
+        Integer version = entity.getVersion();
+
+        LOGGER.info("Version actual de la habitacion con id {} es {}.", id, version);
+
+        return version;
+    }
+    
+    /*
      * Recupera todas las habitaciones para su uso en listados no paginados.
      */
     public List<RoomSummaryResponseDto> getAllRooms() {

@@ -27,6 +27,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/", "/home", "/login", "/css/**", "/js/**", "/images/**", "/webjars/**", "/actuator/health").permitAll()
                         .requestMatchers("/api/debug/**").hasRole("ADMIN")
