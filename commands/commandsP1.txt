@@ -6,7 +6,12 @@
 docker compose up -d
 
 # Acceder al contenedor de desarrollo
+-- Por name
 docker compose exec springdev bash
+
+-- Por id de contenedor
+docker ps
+docker exec -it ID_CONTAINER /bin/bash
 
 # Dentro del contenedor: preparar entorno
 apt-get update
