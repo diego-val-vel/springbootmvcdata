@@ -53,9 +53,9 @@ public class RoomService {
      */
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public RoomDetailResponseDto createRoom(RoomCreateRequestDto requestDto) {
-        LOGGER.info("Creando una nueva habitación con código {}.", requestDto.getCode());
-
         validateBusinessRulesForCreate(requestDto);
+
+        LOGGER.info("Creando una nueva habitación con código {}.", requestDto.getCode());
 
         Room room = Room.builder()
                 .id(null)
@@ -130,7 +130,7 @@ public class RoomService {
 
         return version;
     }
-    
+
     /*
      * Recupera todas las habitaciones para su uso en listados no paginados.
      */
