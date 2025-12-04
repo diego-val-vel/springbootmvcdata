@@ -1,0 +1,110 @@
+# ===
+# Práctica 10
+# ===
+
+# Cambiarse a la rama
+cd /springbootmvcdata
+git checkout feature/practica10
+
+# Dentro del contenedor
+cd /workspace
+
+# Ejecutar pruebas con perfil test (H2 + Actuator básico para pruebas)
+./mvnw -Dspring.profiles.active=test test
+
+# Verificar endpoints de Actuator (perfil dev ejecutando la aplicacion completa)
+
+# Levantar la aplicacion con perfil dev contra PostgreSQL del docker-compose
+./mvnw -DskipTests -Dspring.profiles.active=dev clean spring-boot:run
+
+# En otra terminal (fuera del contenedor) hacer los curl:
+
+# Health basico (NO requiere autenticacion)
+curl -i http://localhost:8080/actuator/health
+/*
+Esperado:
+- 200 OK
+- Cuerpo JSON con {"status":"UP"} y detalles de la base de datos (db, diskSpace, etc.).
+*/
+
+# Info SIN autenticacion (para ver que esta protegido)
+curl -i http://localhost:8080/actuator/info
+/*
+Esperado:
+- 401 Unauthorized
+- Cabecera WWW-Authenticate: Basic realm="Realm"
+*/
+
+# Info CON autenticacion basica (usa un usuario valido, por ejemplo admin)
+curl -i -u admin:admin123 http://localhost:8080/actuator/info
+/*
+Esperado:
+- 200 OK
+- Cuerpo JSON con seccion "app" similar a:
+  {
+    "app": {
+      "name": "HotelBook",
+      "version": "1.0.0",
+      "environment": "dev"
+    }
+  }
+*/
+
+# Metrics SIN autenticacion (para ver que esta protegido)
+curl -i http://localhost:8080/actuator/metrics
+/*
+Esperado:
+- 401 Unauthorized
+*/
+
+# Metrics CON autenticacion basica
+curl -i -u admin:admin123 http://localhost:8080/actuator/metrics
+/*
+Esperado:
+- 200 OK
+- Lista de nombres de metricas disponibles (por ejemplo http.server.requests).
+*/
+
+# Generar trafico HTTP antes de consultar http.server.requests
+
+# Peticion a la vista MVC de habitaciones (HTML)
+curl -i http://localhost:8080/rooms
+
+# Peticion a la API REST de habitaciones como viewer
+curl -i -u viewer:viewer123 http://localhost:8080/api/v1/rooms
+
+# Otra peticion a la API REST de habitaciones para incrementar el contador
+curl -i -u viewer:viewer123 http://localhost:8080/api/v1/rooms/10
+
+# Metrics especificas de peticiones HTTP
+curl -i -u admin:admin123 "http://localhost:8080/actuator/metrics/http.server.requests"
+/*
+Esperado:
+- 200 OK
+- JSON con mediciones de peticiones HTTP, incluyendo count y tiempos.
+*/
+
+# Empaquetado del proyecto
+
+# Detener la aplicacion en ejecucion (Ctrl+C en la terminal donde corre spring-boot:run)
+
+# Generar el artefacto .jar sin ejecutar pruebas
+./mvnw -DskipTests clean package
+
+# Ejecutar el .jar con perfil dev dentro del contenedor
+java -jar target/hotelbook-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
+
+# Verificar nuevamente health e info contra la aplicacion empaquetada
+
+# Health (sin autenticacion)
+curl -i http://localhost:8080/actuator/health
+
+# Info (con autenticacion)
+curl -i -u admin:admin123 http://localhost:8080/actuator/info
+
+/*
+Con esto se valida:
+- Que el empaquetado genera un .jar ejecutable.
+- Que el perfil dev se aplica correctamente.
+- Que Actuator sigue exponiendo health (abierto) e info (protegido) en el artefacto final.
+*/

@@ -21,6 +21,23 @@ spring:
       settings:
         web-allow-others: true
 
+  flyway:
+    enabled: false
+
 logging:
   level:
     org.hibernate.SQL: DEBUG
+
+management:
+  endpoint:
+    info:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+info:
+  app:
+    name: HotelBook
+    environment: test
